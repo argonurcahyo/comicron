@@ -50,17 +50,17 @@ export function NoteEditor({ issueId, initialSummary }: NoteEditorProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs uppercase tracking-wide text-slate-500">
-        <span>Catatan Ringkas</span>
+        <span>Quick Note</span>
         <span className="flex items-center gap-1">
           {saveState === "saving" || saveState === "saved" ? (
             <Save className="h-3.5 w-3.5" />
           ) : (
             <SaveOff className="h-3.5 w-3.5" />
           )}
-          {saveState === "saving" && "Menyimpan..."}
-          {saveState === "saved" && "Tersimpan"}
-          {saveState === "error" && "Gagal"}
-          {saveState === "idle" && "Belum diubah"}
+          {saveState === "saving" && "Saving..."}
+          {saveState === "saved" && "Saved"}
+          {saveState === "error" && "Failed"}
+          {saveState === "idle" && "No changes yet"}
         </span>
       </div>
       <textarea
@@ -69,7 +69,7 @@ export function NoteEditor({ issueId, initialSummary }: NoteEditorProps) {
         value={summary}
         onChange={(event) => setSummary(event.target.value)}
         className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-0 transition focus:border-rose-500"
-        placeholder="Tambahkan ringkasan kecil issue ini..."
+        placeholder="Add a short note for this issue..."
       />
     </div>
   );

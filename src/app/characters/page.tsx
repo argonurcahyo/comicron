@@ -2,6 +2,11 @@ import Link from "next/link";
 import { UserRoundPlus } from "lucide-react";
 
 import { createCharacterAction } from "@/app/actions";
+import {
+  comicCollectionCardClass,
+  comicPanelClass,
+  comicSectionCardClass,
+} from "@/components/ui/comic-card-styles";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
 type CharacterItem = {
@@ -17,7 +22,7 @@ export default async function CharactersPage() {
     return (
       <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <section className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-amber-900">
-          Supabase belum dikonfigurasi.
+          Supabase is not configured.
         </section>
       </main>
     );
@@ -32,68 +37,83 @@ export default async function CharactersPage() {
   const characters = (data ?? []) as CharacterItem[];
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <section className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm">
-        <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">
-          Character Profiles
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Tambahkan karakter dan simpan lore custom dalam format Markdown.
+    <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6">
+      <section className={`${comicPanelClass} p-6`}>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Character Desk</p>
+        <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-950">Build a Shared Character Reference</h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+          Keep alias, status, affiliations, and long-form lore organized so issue notes can reference the cast cleanly.
         </p>
+      </section>
 
-        <form action={createCharacterAction} className="mt-4 grid gap-3 md:grid-cols-2">
+      <section className="grid gap-4 lg:grid-cols-[1fr_1.25fr]">
+        <section className={`${comicSectionCardClass} p-5`}>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Create Character</p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">Add a Profile Stub</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            Start with the essentials here, then open the profile page for detailed lore and history.
+          </p>
+
+          <form action={createCharacterAction} className="mt-5 grid gap-3 md:grid-cols-2">
           <input
             name="name"
             required
-            placeholder="Nama karakter"
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            placeholder="Character name"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
           />
           <input
             name="alias"
             placeholder="Alias"
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
           />
           <input
             name="status"
-            placeholder="Status (active, missing, dead, dll.)"
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            placeholder="Status (active, missing, deceased, etc.)"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
           />
           <input
             name="affiliation"
-            placeholder="Afiliasi"
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+            placeholder="Affiliation"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
           />
           <button
             type="submit"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 md:col-span-2"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:brightness-95 md:col-span-2"
           >
             <UserRoundPlus className="h-4 w-4" />
-            Simpan Profil Dasar
+            Save Basic Profile
           </button>
-        </form>
-      </section>
+          </form>
+        </section>
 
-      <section className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.15em] text-slate-600">
-          Daftar karakter
-        </h2>
-        <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {characters.map((character) => (
-            <Link
-              key={character.id}
-              href={`/characters/${character.id}`}
-              className="rounded-xl border border-slate-300 bg-slate-50 p-4 transition hover:border-rose-500"
-            >
-              <p className="text-base font-bold text-slate-900">{character.name}</p>
-              <p className="text-xs text-slate-600">Alias: {character.alias || "-"}</p>
-              <p className="text-xs text-slate-600">Status: {character.status || "-"}</p>
-              <p className="text-xs text-slate-600">Afiliasi: {character.affiliation || "-"}</p>
-            </Link>
-          ))}
-          {characters.length === 0 && (
-            <p className="text-sm text-slate-500">Belum ada karakter.</p>
-          )}
-        </div>
+        <section className={`${comicSectionCardClass} p-5`}>
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Character Directory</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">Cast Index</h2>
+            </div>
+            <p className="text-sm text-slate-500">{characters.length} profiles</p>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {characters.map((character) => (
+              <Link
+                key={character.id}
+                href={`/characters/${character.id}`}
+                className={`p-4 ${comicCollectionCardClass}`}
+              >
+                <p className="text-base font-bold text-slate-950">{character.name}</p>
+                <div className="mt-3 space-y-1.5 text-sm text-slate-600">
+                  <p>Alias: {character.alias || "-"}</p>
+                  <p>Status: {character.status || "-"}</p>
+                  <p>Affiliation: {character.affiliation || "-"}</p>
+                </div>
+              </Link>
+            ))}
+            {characters.length === 0 && (
+              <p className="text-sm text-slate-500">No characters have been added yet.</p>
+            )}
+          </div>
+        </section>
       </section>
     </main>
   );

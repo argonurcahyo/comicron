@@ -1,23 +1,15 @@
 import type { Metadata } from "next";
-import { Bungee, Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
+import { cn } from "@/lib/utils";
 
-const displayFont = Bungee({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: "400",
-});
-
-const bodyFont = Space_Grotesk({
-  variable: "--font-body",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Comicron - Comic Book Tracker",
-  description: "Manual comic issue tracker with Supabase",
+  description: "Comic issue tracker for collections, events, and character notes.",
 };
 
 export default function RootLayout({
@@ -26,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${displayFont.variable} ${bodyFont.variable} h-full antialiased`}>
+    <html lang="en" className={cn("h-full", "antialiased", "font-sans", inter.variable)}>
       <body className="min-h-full bg-shell text-ink">
         <SiteHeader />
         {children}

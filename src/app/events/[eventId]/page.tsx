@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
 
+import {
+  comicCollectionCardClass,
+  comicPanelClass,
+} from "@/components/ui/comic-card-styles";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
 type EventDetail = {
@@ -30,7 +34,7 @@ export default async function EventTimelinePage({
     return (
       <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">
         <section className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-amber-900">
-          Supabase belum dikonfigurasi.
+          Supabase is not configured.
         </section>
       </main>
     );
@@ -85,18 +89,23 @@ export default async function EventTimelinePage({
   });
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <section className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm">
-        <h1 className="text-xl font-black uppercase tracking-tight text-slate-900">
-          {event.name}
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">{event.description || "Tanpa deskripsi."}</p>
+    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
+      <section className={`${comicPanelClass} p-6`}>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Event Timeline</p>
+        <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-950">{event.name}</h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+          {event.description || "No description yet."}
+        </p>
       </section>
 
-      <section className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.15em] text-slate-600">
-          Timeline baca
-        </h2>
+      <section className={`${comicPanelClass} p-5`}>
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Reading Timeline</p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">Ordered Issue Sequence</h2>
+          </div>
+          <p className="text-sm text-slate-500">{timeline.length} entries</p>
+        </div>
         <div className="mt-4 space-y-3">
           {timeline.map((entry) => {
             if (!entry.issue) {
@@ -106,16 +115,16 @@ export default async function EventTimelinePage({
             return (
               <article
                 key={`${entry.issue.id}-${entry.reading_order}`}
-                className="grid grid-cols-[auto_1fr] gap-3 rounded-xl border border-slate-300 bg-slate-50 p-3"
+                className={`grid grid-cols-[auto_1fr] gap-3 p-4 ${comicCollectionCardClass}`}
               >
-                <p className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-xs font-bold text-rose-700">
+                <p className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#ffe3ae] text-sm font-black text-slate-950">
                   {entry.reading_order}
                 </p>
                 <div>
-                  <p className="text-sm font-bold text-slate-900">
+                  <p className="text-base font-bold text-slate-950">
                     {entry.issue.title.name} #{entry.issue.issue_number}
                   </p>
-                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
                     Status: {entry.issue.reading_status}
                   </p>
                 </div>
@@ -124,7 +133,7 @@ export default async function EventTimelinePage({
           })}
           {timeline.length === 0 && (
             <p className="text-sm text-slate-500">
-              Belum ada issue untuk event ini. Tambahkan melalui dashboard.
+              No issues are linked to this event yet. Add them from the dashboard.
             </p>
           )}
         </div>

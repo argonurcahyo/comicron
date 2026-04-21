@@ -2,15 +2,97 @@
 
 import { revalidatePath } from "next/cache";
 
+import { canonicalizeSummaryMentions } from "@/lib/character-mentions";
 import { coversBucket, getSupabaseAdmin } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/utils";
+
+export type CreateIssueFormState = {
+  error: string | null;
+  success: boolean;
+};
+
+async function syncCharactersFromSummary(markdown: string): Promise<string> {
+  const supabaseAdmin = getSupabaseAdmin();
+  const { data: charactersData, error: charactersError } = await supabaseAdmin
+    .from("characters")
+    .select("id,name,alias");
+
+  if (charactersError) {
+    throw new Error(charactersError.message);
+  }
+
+  const existingCharacters = ((charactersData ?? []) as Record<string, unknown>[]).map((character) => ({
+    id: String(character.id ?? ""),
+    name: String(character.name ?? ""),
+    alias: character.alias ? String(character.alias) : null,
+  }));
+  const { markdown: canonicalMarkdown, unresolvedMentions } = canonicalizeSummaryMentions(
+    markdown,
+    existingCharacters,
+  );
+
+  if (unresolvedMentions.length === 0) {
+    return canonicalMarkdown;
+  }
+
+  const { error } = await supabaseAdmin.from("characters").upsert(
+    unresolvedMentions.map((mention) => ({ name: mention.name })),
+    { onConflict: "name" },
+  );
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return canonicalMarkdown;
+}
+
+async function resolvePublisherName(
+  selectedPublisherId: string,
+  newPublisherName: string,
+): Promise<string | null> {
+  const supabaseAdmin = getSupabaseAdmin();
+
+  if (selectedPublisherId) {
+    const { data, error } = await supabaseAdmin
+      .from("publishers")
+      .select("name")
+      .eq("id", selectedPublisherId)
+      .single();
+
+    if (error || !data?.name) {
+      throw new Error(error?.message ?? "Publisher could not be found.");
+    }
+
+    return String(data.name);
+  }
+
+  if (newPublisherName) {
+    const { data, error } = await supabaseAdmin
+      .from("publishers")
+      .upsert({ name: newPublisherName }, { onConflict: "name" })
+      .select("name")
+      .single();
+
+    if (error || !data?.name) {
+      throw new Error(error?.message ?? "Failed to create publisher.");
+    }
+
+    return String(data.name);
+  }
+
+  return null;
+}
 
 export async function createIssueAction(formData: FormData): Promise<void> {
   const supabaseAdmin = getSupabaseAdmin();
   const selectedTitleId = String(formData.get("title_id") ?? "").trim();
   const newTitleName = String(formData.get("new_title_name") ?? "").trim();
+  const selectedPublisherId = String(formData.get("publisher_id") ?? "").trim();
+  const newPublisherName = String(formData.get("new_publisher_name") ?? "").trim();
+  const volume = String(formData.get("volume") ?? "").trim();
   const issueNumber = String(formData.get("issue_number") ?? "").trim();
-  const summary = String(formData.get("summary") ?? "").trim();
+  const rawSummary = String(formData.get("summary") ?? "").trim();
   const readingStatus = String(formData.get("reading_status") ?? "planned").trim();
   const eventId = String(formData.get("event_id") ?? "").trim();
   const readingOrderRaw = String(formData.get("reading_order") ?? "").trim();
@@ -23,9 +105,14 @@ export async function createIssueAction(formData: FormData): Promise<void> {
   let titleId = selectedTitleId;
 
   if (!titleId && newTitleName) {
+    const publisher = await resolvePublisherName(selectedPublisherId, newPublisherName);
+    if (!publisher) {
+      throw new Error("A publisher is required when creating a new title.");
+    }
+
     const { data: titleRow, error: titleError } = await supabaseAdmin
       .from("titles")
-      .upsert({ name: newTitleName }, { onConflict: "name" })
+      .upsert({ name: newTitleName, publisher }, { onConflict: "name" })
       .select("id")
       .single();
 
@@ -39,6 +126,8 @@ export async function createIssueAction(formData: FormData): Promise<void> {
   if (!titleId) {
     return;
   }
+
+  const summary = await syncCharactersFromSummary(rawSummary);
 
   let coverUrl: string | null = null;
 
@@ -56,7 +145,7 @@ export async function createIssueAction(formData: FormData): Promise<void> {
       });
 
     if (uploadError) {
-      throw new Error(uploadError.message);
+      throw new Error(`Cover upload failed: ${uploadError.message}`);
     }
 
     const {
@@ -70,6 +159,7 @@ export async function createIssueAction(formData: FormData): Promise<void> {
     .from("issues")
     .insert({
       title_id: titleId,
+      volume: volume || null,
       issue_number: issueNumber,
       summary,
       reading_status: readingStatus,
@@ -79,7 +169,7 @@ export async function createIssueAction(formData: FormData): Promise<void> {
     .single();
 
   if (issueError || !issueRow) {
-    throw new Error(issueError?.message ?? "Failed to create issue.");
+    throw new Error(issueError?.message ?? "Issue insert failed after cover upload.");
   }
 
   const readingOrder = Number(readingOrderRaw);
@@ -101,6 +191,23 @@ export async function createIssueAction(formData: FormData): Promise<void> {
 
   revalidatePath("/");
   revalidatePath("/events");
+  revalidatePath("/titles");
+  revalidatePath("/characters");
+}
+
+export async function createIssueActionWithState(
+  _prevState: CreateIssueFormState,
+  formData: FormData,
+): Promise<CreateIssueFormState> {
+  try {
+    await createIssueAction(formData);
+    return { error: null, success: true };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Something went wrong while saving the issue.",
+      success: false,
+    };
+  }
 }
 
 export async function createCharacterAction(formData: FormData): Promise<void> {
@@ -117,7 +224,7 @@ export async function createCharacterAction(formData: FormData): Promise<void> {
   const { error } = await supabaseAdmin.from("characters").upsert(
     {
       name,
-      alias,
+      alias: alias || null,
       status,
       affiliation,
     },
@@ -135,6 +242,7 @@ export async function updateCharacterProfileAction(formData: FormData): Promise<
   const supabaseAdmin = getSupabaseAdmin();
   const characterId = String(formData.get("character_id") ?? "").trim();
   const status = String(formData.get("status") ?? "active").trim();
+  const alias = String(formData.get("alias") ?? "").trim();
   const affiliation = String(formData.get("affiliation") ?? "").trim();
   const loreMarkdown = String(formData.get("lore_markdown") ?? "").trim();
 
@@ -146,6 +254,7 @@ export async function updateCharacterProfileAction(formData: FormData): Promise<
     .from("characters")
     .update({
       status,
+      alias: alias || null,
       affiliation,
       lore_markdown: loreMarkdown,
     })
@@ -186,4 +295,120 @@ export async function createEventAction(formData: FormData): Promise<void> {
 
   revalidatePath("/events");
   revalidatePath("/");
+}
+
+export async function updateIssueAction(formData: FormData): Promise<void> {
+  const supabaseAdmin = getSupabaseAdmin();
+  const issueId = String(formData.get("issue_id") ?? "").trim();
+  const selectedTitleId = String(formData.get("title_id") ?? "").trim();
+  const newTitleName = String(formData.get("new_title_name") ?? "").trim();
+  const selectedPublisherId = String(formData.get("publisher_id") ?? "").trim();
+  const newPublisherName = String(formData.get("new_publisher_name") ?? "").trim();
+  const volume = String(formData.get("volume") ?? "").trim();
+  const issueNumber = String(formData.get("issue_number") ?? "").trim();
+  const rawSummary = String(formData.get("summary") ?? "").trim();
+  const readingStatus = String(formData.get("reading_status") ?? "planned").trim();
+  const eventId = String(formData.get("event_id") ?? "").trim();
+  const readingOrderRaw = String(formData.get("reading_order") ?? "").trim();
+  const coverFile = formData.get("cover_file");
+
+  if (!issueId || !issueNumber) return;
+
+  let titleId = selectedTitleId;
+
+  if (!titleId && newTitleName) {
+    const publisher = await resolvePublisherName(selectedPublisherId, newPublisherName);
+    if (!publisher) {
+      throw new Error("A publisher is required when creating a new title.");
+    }
+
+    const { data: titleRow, error: titleError } = await supabaseAdmin
+      .from("titles")
+      .upsert({ name: newTitleName, publisher }, { onConflict: "name" })
+      .select("id")
+      .single();
+
+    if (titleError || !titleRow) {
+      throw new Error(titleError?.message ?? "Failed to create title.");
+    }
+
+    titleId = titleRow.id;
+  }
+
+  if (!titleId) return;
+
+  const summary = await syncCharactersFromSummary(rawSummary);
+
+  let coverUrl: string | undefined;
+
+  if (coverFile instanceof File && coverFile.size > 0) {
+    const extension = coverFile.name.split(".").pop() ?? "jpg";
+    const key = `${slugify(newTitleName || selectedTitleId || issueId || "issue")}-${Date.now()}.${extension}`;
+    const storagePath = `issues/${key}`;
+    const bytes = await coverFile.arrayBuffer();
+
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from(coversBucket)
+      .upload(storagePath, bytes, {
+        contentType: coverFile.type || "image/jpeg",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw new Error(`Cover upload failed: ${uploadError.message}`);
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabaseAdmin.storage.from(coversBucket).getPublicUrl(storagePath);
+
+    coverUrl = publicUrl;
+  }
+
+  const { error: updateError } = await supabaseAdmin
+    .from("issues")
+    .update({
+      title_id: titleId,
+      volume: volume || null,
+      issue_number: issueNumber,
+      summary,
+      reading_status: readingStatus,
+      ...(coverUrl ? { cover_url: coverUrl } : {}),
+    })
+    .eq("id", issueId);
+
+  if (updateError) throw new Error(updateError.message);
+
+  if (eventId) {
+    const readingOrder = Number(readingOrderRaw);
+    if (Number.isInteger(readingOrder)) {
+      const { error: eiError } = await supabaseAdmin.from("event_issues").upsert(
+        { event_id: eventId, issue_id: issueId, reading_order: readingOrder },
+        { onConflict: "event_id,issue_id" },
+      );
+      if (eiError) throw new Error(eiError.message);
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/events");
+  revalidatePath("/titles");
+  revalidatePath("/characters");
+}
+
+export async function deleteIssueAction(formData: FormData): Promise<void> {
+  const supabaseAdmin = getSupabaseAdmin();
+  const issueId = String(formData.get("issue_id") ?? "").trim();
+
+  if (!issueId) return;
+
+  const { error } = await supabaseAdmin.from("issues").delete().eq("id", issueId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/events");
+  revalidatePath("/titles");
 }

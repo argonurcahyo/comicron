@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   try {
     if (!isSupabaseConfigured) {
-      return NextResponse.json({ error: "Supabase belum dikonfigurasi" }, { status: 500 });
+      return NextResponse.json({ error: "Supabase is not configured" }, { status: 500 });
     }
 
     const supabaseAdmin = getSupabaseAdmin();

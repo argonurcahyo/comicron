@@ -1,6 +1,16 @@
 -- Comic Book Tracker schema (Supabase / PostgreSQL)
 create extension if not exists pgcrypto;
 
+create table if not exists public.publishers (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  created_at timestamptz not null default now()
+);
+
+insert into public.publishers (name)
+values ('Marvel Comics'), ('DC Comics'), ('Image Comics')
+on conflict (name) do nothing;
+
 create table if not exists public.titles (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
@@ -20,6 +30,7 @@ create table if not exists public.events (
 create table if not exists public.issues (
   id uuid primary key default gen_random_uuid(),
   title_id uuid not null references public.titles(id) on delete cascade,
+  volume text,
   issue_number text not null,
   summary text default '',
   reading_status text not null default 'planned' check (reading_status in ('planned', 'reading', 'completed', 'dropped')),
@@ -27,7 +38,7 @@ create table if not exists public.issues (
   release_date date,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique(title_id, issue_number)
+  unique nulls not distinct (title_id, volume, issue_number)
 );
 
 create table if not exists public.characters (
@@ -61,6 +72,9 @@ create table if not exists public.event_issues (
 create index if not exists idx_issues_title_id on public.issues(title_id);
 create index if not exists idx_issue_characters_character_id on public.issue_characters(character_id);
 create index if not exists idx_event_issues_issue_id on public.event_issues(issue_id);
+create unique index if not exists idx_characters_alias_unique
+on public.characters (lower(btrim(alias)))
+where alias is not null and btrim(alias) <> '';
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -87,8 +101,27 @@ execute procedure public.set_updated_at();
 -- Minimal RLS baseline for zero-cost personal usage:
 -- Keep RLS on and only use service role key in server-side code.
 alter table public.titles enable row level security;
+alter table public.publishers enable row level security;
 alter table public.events enable row level security;
 alter table public.issues enable row level security;
 alter table public.characters enable row level security;
 alter table public.issue_characters enable row level security;
 alter table public.event_issues enable row level security;
+
+-- ============================================================
+-- MIGRATION: run this in Supabase SQL Editor if the table
+-- already exists (skip for fresh installs — CREATE TABLE above
+-- already includes volume).
+-- ============================================================
+-- ALTER TABLE public.issues ADD COLUMN IF NOT EXISTS volume text;
+-- ALTER TABLE public.issues DROP CONSTRAINT IF EXISTS issues_title_id_issue_number_key;
+-- ALTER TABLE public.issues ADD CONSTRAINT issues_title_id_volume_issue_number_key
+--   UNIQUE NULLS NOT DISTINCT (title_id, volume, issue_number);
+--
+-- Publisher master backfill:
+-- INSERT INTO public.publishers(name)
+-- SELECT DISTINCT publisher
+-- FROM public.titles
+-- WHERE publisher IS NOT NULL AND btrim(publisher) <> ''
+-- ON CONFLICT (name) DO NOTHING;
+-- ============================================================
