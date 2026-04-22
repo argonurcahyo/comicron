@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { IssueCard } from "@/components/issue-card";
+import { TitleFilterCombobox } from "@/components/title-filter-combobox";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
 type SearchParams = {
@@ -269,30 +270,46 @@ export default async function TitlesPage({
         </p>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1.2fr_0.9fr]">
+      <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_black]">
-          <p className="text-xs font-display uppercase tracking-widest text-slate-600">All Titles</p>
-          <ul className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-            {titles.map((title) => {
-              const active = title.id === selectedTitleId;
-              return (
-                <li key={title.id}>
-                  <Link
-                    href={{ pathname: "/titles", query: { title: title.id } }}
-                    className={`block border-2 border-black px-3 py-3 transition ${
-                      active ? "bg-pop-yellow text-ink-black" : "bg-white text-slate-700 hover:bg-pop-yellow/20"
-                    }`}
-                  >
-                    <p className="font-display text-base text-ink-black">{title.name}</p>
-                    <p className="text-xs text-slate-600">{title.publisher ?? "Publisher not set"}</p>
-                    <p className="mt-1 text-[11px] font-mono uppercase tracking-wide text-slate-500">
-                      {countsByTitle.get(title.id) ?? 0} issues
-                    </p>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-display uppercase tracking-widest text-slate-600">Title Filter</p>
+              <h2 className="mt-2 font-display text-2xl text-ink-black">Jump to a Series</h2>
+            </div>
+            <p className="bg-black px-2 py-1 font-display text-xs text-white">{titles.length} TITLES</p>
+          </div>
+
+          <div className="mt-4">
+            <TitleFilterCombobox
+              key={selectedTitleId ?? "default-title-filter"}
+              selectedTitleId={selectedTitleId}
+              titles={titles.map((title) => ({
+                id: title.id,
+                name: title.name,
+                publisher: title.publisher,
+                issueCount: countsByTitle.get(title.id) ?? 0,
+              }))}
+            />
+          </div>
+
+          {selectedTitle ? (
+            <div className="mt-4 grid gap-3 border-2 border-black bg-slate-50 p-4 md:grid-cols-[minmax(0,1fr)_auto]">
+              <div className="min-w-0">
+                <p className="text-[10px] font-display uppercase tracking-[0.18em] text-slate-500">Current Selection</p>
+                <p className="mt-1 font-display text-2xl leading-tight text-ink-black">{selectedTitle.name}</p>
+                <p className="mt-1 text-sm text-slate-600">{selectedTitle.publisher ?? "Publisher not set"}</p>
+              </div>
+              <div className="flex flex-wrap items-end gap-2 md:justify-end">
+                <p className="border-2 border-black bg-white px-3 py-2 font-display text-xs text-ink-black shadow-[2px_2px_0px_0px_black]">
+                  {countsByTitle.get(selectedTitle.id) ?? 0} ISSUES
+                </p>
+                <p className="border-2 border-black bg-pop-cyan px-3 py-2 font-display text-xs text-white shadow-[2px_2px_0px_0px_black]">
+                  {volumes.length} VOLUMES
+                </p>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_black]">
