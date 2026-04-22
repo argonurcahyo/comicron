@@ -84,6 +84,99 @@ async function resolvePublisherName(
   return null;
 }
 
+async function resolveEventId(selectedEventId: string, newEventName: string): Promise<string | null> {
+  const supabaseAdmin = getSupabaseAdmin();
+
+  if (selectedEventId) {
+    const { data, error } = await supabaseAdmin.from("events").select("id").eq("id", selectedEventId).single();
+
+    if (error || !data?.id) {
+      throw new Error(error?.message ?? "Event could not be found.");
+    }
+
+    return String(data.id);
+  }
+
+  if (newEventName) {
+    const { data, error } = await supabaseAdmin
+      .from("events")
+      .upsert({ name: newEventName }, { onConflict: "name" })
+      .select("id")
+      .single();
+
+    if (error || !data?.id) {
+      throw new Error(error?.message ?? "Failed to create event.");
+    }
+
+    return String(data.id);
+  }
+
+  return null;
+}
+
+async function getNextEventReadingOrder(eventId: string): Promise<number> {
+  const supabaseAdmin = getSupabaseAdmin();
+  const { data, error } = await supabaseAdmin
+    .from("event_issues")
+    .select("reading_order")
+    .eq("event_id", eventId)
+    .order("reading_order", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const highest = data?.[0]?.reading_order;
+  return typeof highest === "number" ? highest + 1 : 1;
+}
+
+async function syncIssueEventLink(issueId: string, eventId: string | null): Promise<void> {
+  const supabaseAdmin = getSupabaseAdmin();
+  const { data: existingLinks, error: existingLinksError } = await supabaseAdmin
+    .from("event_issues")
+    .select("event_id,reading_order")
+    .eq("issue_id", issueId);
+
+  if (existingLinksError) {
+    throw new Error(existingLinksError.message);
+  }
+
+  const currentLink = existingLinks?.[0];
+
+  if (!eventId) {
+    if ((existingLinks?.length ?? 0) > 0) {
+      const { error } = await supabaseAdmin.from("event_issues").delete().eq("issue_id", issueId);
+      if (error) {
+        throw new Error(error.message);
+      }
+    }
+    return;
+  }
+
+  if (currentLink?.event_id === eventId) {
+    return;
+  }
+
+  if ((existingLinks?.length ?? 0) > 0) {
+    const { error } = await supabaseAdmin.from("event_issues").delete().eq("issue_id", issueId);
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  const readingOrder = await getNextEventReadingOrder(eventId);
+  const { error } = await supabaseAdmin.from("event_issues").insert({
+    event_id: eventId,
+    issue_id: issueId,
+    reading_order: readingOrder,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function createIssueAction(formData: FormData): Promise<void> {
   const supabaseAdmin = getSupabaseAdmin();
   const selectedTitleId = String(formData.get("title_id") ?? "").trim();
@@ -94,8 +187,8 @@ export async function createIssueAction(formData: FormData): Promise<void> {
   const issueNumber = String(formData.get("issue_number") ?? "").trim();
   const rawSummary = String(formData.get("summary") ?? "").trim();
   const readingStatus = String(formData.get("reading_status") ?? "planned").trim();
-  const eventId = String(formData.get("event_id") ?? "").trim();
-  const readingOrderRaw = String(formData.get("reading_order") ?? "").trim();
+  const selectedEventId = String(formData.get("event_id") ?? "").trim();
+  const newEventName = String(formData.get("new_event_name") ?? "").trim();
   const coverFile = formData.get("cover_file");
 
   if (!issueNumber) {
@@ -126,6 +219,8 @@ export async function createIssueAction(formData: FormData): Promise<void> {
   if (!titleId) {
     return;
   }
+
+  const eventId = await resolveEventId(selectedEventId, newEventName);
 
   const summary = await syncCharactersFromSummary(rawSummary);
 
@@ -172,22 +267,7 @@ export async function createIssueAction(formData: FormData): Promise<void> {
     throw new Error(issueError?.message ?? "Issue insert failed after cover upload.");
   }
 
-  const readingOrder = Number(readingOrderRaw);
-
-  if (eventId && Number.isInteger(readingOrder)) {
-    const { error: eventIssueError } = await supabaseAdmin.from("event_issues").upsert(
-      {
-        event_id: eventId,
-        issue_id: issueRow.id,
-        reading_order: readingOrder,
-      },
-      { onConflict: "event_id,issue_id" },
-    );
-
-    if (eventIssueError) {
-      throw new Error(eventIssueError.message);
-    }
-  }
+  await syncIssueEventLink(issueRow.id, eventId);
 
   revalidatePath("/");
   revalidatePath("/events");
@@ -308,8 +388,8 @@ export async function updateIssueAction(formData: FormData): Promise<void> {
   const issueNumber = String(formData.get("issue_number") ?? "").trim();
   const rawSummary = String(formData.get("summary") ?? "").trim();
   const readingStatus = String(formData.get("reading_status") ?? "planned").trim();
-  const eventId = String(formData.get("event_id") ?? "").trim();
-  const readingOrderRaw = String(formData.get("reading_order") ?? "").trim();
+  const selectedEventId = String(formData.get("event_id") ?? "").trim();
+  const newEventName = String(formData.get("new_event_name") ?? "").trim();
   const coverFile = formData.get("cover_file");
 
   if (!issueId || !issueNumber) return;
@@ -336,6 +416,8 @@ export async function updateIssueAction(formData: FormData): Promise<void> {
   }
 
   if (!titleId) return;
+
+  const eventId = await resolveEventId(selectedEventId, newEventName);
 
   const summary = await syncCharactersFromSummary(rawSummary);
 
@@ -379,16 +461,7 @@ export async function updateIssueAction(formData: FormData): Promise<void> {
 
   if (updateError) throw new Error(updateError.message);
 
-  if (eventId) {
-    const readingOrder = Number(readingOrderRaw);
-    if (Number.isInteger(readingOrder)) {
-      const { error: eiError } = await supabaseAdmin.from("event_issues").upsert(
-        { event_id: eventId, issue_id: issueId, reading_order: readingOrder },
-        { onConflict: "event_id,issue_id" },
-      );
-      if (eiError) throw new Error(eiError.message);
-    }
-  }
+  await syncIssueEventLink(issueId, eventId);
 
   revalidatePath("/");
   revalidatePath("/events");

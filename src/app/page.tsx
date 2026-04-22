@@ -1,21 +1,17 @@
-import { ClockArrowUp, AlertCircle, Database, PlusCircle, BookOpen } from "lucide-react";
-import Image from "next/image";
-
+import { AlertCircle, Database, PlusCircle, BookOpen, Newspaper } from "lucide-react";
 import { CreateIssueForm } from "@/components/create-issue-form";
-import { EditIssueModal } from "@/components/edit-issue-modal";
-import { IssueSummaryPreview } from "@/components/issue-summary-preview";
+import { IssueCard } from "@/components/issue-card";
 import {
-  comicCollectionCardClass,
   comicEmptyStateClass,
-  comicInsetCardClass,
 } from "@/components/ui/comic-card-styles";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
 // Shadcn UI components
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
-import { Badge } from "../components/ui/badge";
-import { Separator } from "../components/ui/separator";
+import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 type TitleItem = { id: string; name: string };
 type EventItem = { id: string; name: string };
@@ -34,17 +30,13 @@ type IssueItem = {
   event_links: { reading_order: number; event: { id: string; name: string } | null }[] | null;
 };
 
-type IssueRow = {
-  id: string;
-  issue_number: string;
-  volume: string | null;
-  summary: string | null;
-  reading_status: string;
-  cover_url: string | null;
-  created_at: string;
+type IssueRow = Omit<IssueItem, "title" | "event_links"> & {
   title: IssueItem["title"] | IssueItem["title"][];
   event_links:
-    | { reading_order: number; event: { id: string; name: string } | { id: string; name: string }[] | null }[]
+    | {
+        reading_order: number;
+        event: { id: string; name: string } | { id: string; name: string }[] | null;
+      }[]
     | null;
 };
 
@@ -52,11 +44,11 @@ export default async function DashboardPage() {
   if (!isSupabaseConfigured) {
     return (
       <main className="container max-w-4xl py-10">
-        <Alert variant="destructive" className="border-amber-500 bg-amber-50 text-amber-900">
-          <AlertCircle className="h-4 w-4 stroke-amber-600" />
-          <AlertTitle className="font-bold uppercase tracking-wider">Supabase Not Configured</AlertTitle>
-          <AlertDescription>
-            Please set your environment variables in <code className="font-mono text-xs">.env.local</code> and restart the server.
+        <Alert variant="destructive" className="border-4 border-black bg-pop-yellow shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black">
+          <AlertCircle className="h-6 w-6" />
+          <AlertTitle className="font-display text-xl uppercase tracking-tight">System Failure!</AlertTitle>
+          <AlertDescription className="font-medium">
+            Supabase is not configured. Check your <code className="bg-black text-white px-1">.env.local</code>.
           </AlertDescription>
         </Alert>
       </main>
@@ -84,13 +76,10 @@ export default async function DashboardPage() {
   if (dbError) {
     return (
       <main className="container max-w-4xl py-10">
-        <Alert variant="destructive">
-          <Database className="h-4 w-4" />
-          <AlertTitle>Database Error</AlertTitle>
-          <AlertDescription className="mt-2">
-            <p className="font-mono text-xs opacity-80">{dbError}</p>
-            <p className="mt-2 text-xs">Ensure your SQL schema is applied and the project isn&apos;t paused.</p>
-          </AlertDescription>
+        <Alert variant="destructive" className="border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <Database className="h-5 w-5" />
+          <AlertTitle className="font-display">Database Error</AlertTitle>
+          <AlertDescription className="mt-2 font-mono text-xs">{dbError}</AlertDescription>
         </Alert>
       </main>
     );
@@ -111,144 +100,89 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <main className="container mx-auto flex max-w-7xl flex-col gap-8 py-8 px-4 md:px-6">
-      {/* Header Section */}
-      <section className="grid gap-6 lg:grid-cols-3 lg:items-start">
-        <div className="lg:col-span-1 space-y-2">
-          <Badge variant="outline" className="border-[#d9c8a5] bg-[#fff7e8] text-[#c44536] hover:bg-[#fff7e8]">
-            Library Dashboard
-          </Badge>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 lg:text-5xl">
-            Track Runs, Events, and Character Callouts
+    <main className="container mx-auto flex max-w-7xl flex-col gap-10 py-10 px-4 md:px-6">
+      
+      {/* Hero Section */}
+      <section className="grid gap-8 lg:grid-cols-3 lg:items-center">
+        <div className="lg:col-span-1 space-y-4">
+          <div className="inline-block bg-pop-cyan text-white border-2 border-black px-3 py-1 -rotate-2 shadow-[3px_3px_0px_0px_black]">
+            <span className="font-display text-xs uppercase tracking-widest">Control Center</span>
+          </div>
+          <h1 className="font-display text-5xl md:text-6xl leading-[0.9] text-ink-black uppercase">
+            Track <span className="text-primary italic">The Run.</span>
           </h1>
-          <p className="text-muted-foreground">
-            A cleaner control room for single issues, crossover sequencing, and quick editorial notes.
+          <p className="text-lg font-medium text-slate-600 leading-snug">
+            Sequencing crossover events and logging character beats since issue #1.
           </p>
         </div>
 
-        <Card className="lg:col-span-2 border-card-line bg-white/90 shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2 text-slate-700">
-              <PlusCircle className="h-5 w-5 text-primary" />
-              Add an Issue Fast
-            </CardTitle>
-            <CardDescription>Create a title on the fly, attach a cover, and place the issue inside an event order.</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <Card className="lg:col-span-2 border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+          <div className="bg-pop-yellow border-b-4 border-black px-4 py-2 flex items-center gap-2">
+            <PlusCircle className="h-5 w-5" />
+            <span className="font-display text-sm uppercase tracking-tight">Direct Edition: Add New Entry</span>
+          </div>
+          <CardContent className="pt-6">
             <CreateIssueForm titles={titles} events={events} publishers={publishers} />
           </CardContent>
         </Card>
       </section>
 
-      <Separator />
+      <Separator className="h-1 bg-black" />
 
-      {/* Recent Issues Section */}
-      <section className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ClockArrowUp className="h-5 w-5 text-muted-foreground" />
-            <h2 className="text-2xl font-bold tracking-tight">Latest Issues</h2>
+      {/* Issues Grid */}
+      <section className="space-y-8">
+        <div className="flex items-end justify-between">
+          <div className="flex items-center gap-3">
+            <Newspaper className="h-8 w-8 text-primary" />
+            <h2 className="font-display text-3xl uppercase">Latest Dispatch</h2>
           </div>
-          <span className="text-sm text-muted-foreground">{issues.length} issues on this page</span>
+          <Badge className="bg-black text-white rounded-none font-display">
+            {issues.length} ISSUES
+          </Badge>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {issues.map((issue, index) => {
             const eventLink = issue.event_links?.[0];
-            const statusColor =
-              issue.reading_status === "completed"
-                ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                : issue.reading_status === "reading"
-                  ? "bg-amber-100 text-amber-700 border-amber-200"
-                  : issue.reading_status === "dropped"
-                    ? "bg-rose-100 text-rose-700 border-rose-200"
-                    : "bg-slate-100 text-slate-700 border-slate-200";
 
             return (
-              <Card key={issue.id} className={`flex h-full flex-col overflow-hidden ${comicCollectionCardClass}`}>
-                <div className="relative aspect-2/3 w-full bg-slate-100">
-                  {issue.cover_url ? (
-                    <Image
-                      src={issue.cover_url}
-                      alt={`${issue.title?.name ?? "Unknown"} #${issue.issue_number}`}
-                      className="object-cover transition-transform hover:scale-105"
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                      priority={index < 4}
-                    />
-                  ) : (
-                    <div className="flex h-full w-full flex-col items-center justify-center text-slate-400">
-                      <BookOpen className="h-10 w-10 mb-2 opacity-20" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest">No Cover</span>
-                    </div>
-                  )}
-                </div>
-
-                <CardContent className="p-4 flex-1 flex flex-col">
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="space-y-1">
-                      <h3 className="font-bold leading-none text-slate-900 group-hover:text-rose-600 line-clamp-1">
-                        {issue.title?.name ?? "Untitled"}
-                      </h3>
-                      <p className="text-xs font-medium text-muted-foreground italic">
-                        {issue.volume ? `Vol. ${issue.volume} ` : ""}#{issue.issue_number}
-                      </p>
-                    </div>
-                    <EditIssueModal
-                      issue={{
-                        id: issue.id,
-                        issue_number: issue.issue_number,
-                        volume: issue.volume,
-                        summary: issue.summary,
-                        reading_status: issue.reading_status,
-                        cover_url: issue.cover_url,
-                        publisherId: publishers.find((p) => p.name === issue.title?.publisher)?.id ?? "",
-                        publisherName: issue.title?.publisher ?? "",
-                        titleId: issue.title?.id ?? "",
-                        titleName: issue.title?.name ?? "",
-                        eventId: eventLink?.event?.id,
-                        readingOrder: eventLink?.reading_order,
-                      }}
-                      titles={titles}
-                      events={events}
-                      publishers={publishers}
-                      characters={characters}
-                    />
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <Badge variant="secondary" className={`text-[10px] uppercase font-bold tracking-tight ${statusColor}`}>
-                      {issue.reading_status}
-                    </Badge>
-                    {eventLink?.event && (
-                      <Badge variant="outline" className="text-[10px] border-rose-200 text-rose-700">
-                        {eventLink.event.name.split(":")[0]} #{eventLink.reading_order}
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className={`mt-auto p-3 ${comicInsetCardClass}`}>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Issue Notes</p>
-                    <IssueSummaryPreview
-                      summary={issue.summary}
-                      characters={characters}
-                      emptyText="Open full edit to write notes, continuity details, and @character mentions."
-                      className="mt-2 max-h-24 overflow-hidden text-sm leading-6 text-slate-600 [&_p]:m-0"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <IssueCard
+                key={issue.id} 
+                issue={issue}
+                titleName={issue.title?.name ?? "Untitled"}
+                eventLink={eventLink}
+                modalIssue={{
+                  id: issue.id,
+                  issue_number: issue.issue_number,
+                  volume: issue.volume,
+                  summary: issue.summary,
+                  reading_status: issue.reading_status,
+                  cover_url: issue.cover_url,
+                  publisherId: publishers.find((p) => p.name === issue.title?.publisher)?.id ?? "",
+                  publisherName: issue.title?.publisher ?? "",
+                  titleId: issue.title?.id ?? "",
+                  titleName: issue.title?.name ?? "",
+                  eventId: eventLink?.event?.id,
+                  readingOrder: eventLink?.reading_order,
+                }}
+                titles={titles}
+                events={events}
+                publishers={publishers}
+                characters={characters}
+                emptyText="Click edit to add continuity notes..."
+                priority={index < 4}
+              />
             );
           })}
         </div>
 
         {issues.length === 0 && (
-          <Card className={`flex flex-col items-center justify-center p-12 text-center ${comicEmptyStateClass}`}>
-            <div className="rounded-full bg-slate-100 p-4 mb-4">
-              <BookOpen className="h-8 w-8 text-slate-400" />
+          <Card className={cn("flex flex-col items-center justify-center p-16 text-center border-4 border-dashed border-slate-300", comicEmptyStateClass)}>
+            <div className="rounded-full bg-slate-100 p-6 mb-4 animate-bounce">
+              <BookOpen className="h-12 w-12 text-slate-400" />
             </div>
-            <CardTitle className="text-slate-600">No issues found</CardTitle>
-            <CardDescription>Start by adding your first comic issue using the form above.</CardDescription>
+            <CardTitle className="font-display text-2xl text-slate-400">The Vault is Empty!</CardTitle>
+            <CardDescription className="font-medium">No issues detected in the sector. Use the form above to add one.</CardDescription>
           </Card>
         )}
       </section>

@@ -2,11 +2,6 @@ import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 
 import { createEventAction } from "@/app/actions";
-import {
-  comicCollectionCardClass,
-  comicPanelClass,
-  comicSectionCardClass,
-} from "@/components/ui/comic-card-styles";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 import { formatDate } from "@/lib/utils";
 
@@ -39,21 +34,21 @@ export default async function EventsPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <section className={`${comicPanelClass} p-6`}>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Event Planner</p>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-950">
+      <section className="border-4 border-black bg-white shadow-[8px_8px_0px_0px_black] p-6">
+        <p className="inline-block bg-pop-cyan px-2 py-1 text-xs font-display tracking-widest text-white">Event Planner</p>
+        <h1 className="mt-3 font-display text-4xl text-ink-black">
           Organize Crossovers with a Clear Reading Order
         </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+        <p className="mt-2 max-w-3xl text-base leading-6 text-slate-700">
           Build event timelines that cut across titles, then use the detail page to see the order at a glance.
         </p>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_1.25fr]">
-        <section className={`${comicSectionCardClass} p-5`}>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Create Event</p>
-          <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">Add a New Crossover Arc</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
+        <section className="border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_black]">
+          <p className="text-xs font-display uppercase tracking-widest text-slate-600">Create Event</p>
+          <h2 className="mt-2 font-display text-2xl text-ink-black">Add a New Crossover Arc</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-700">
             Capture the umbrella event first, then assign issues and reading order from the dashboard.
           </p>
 
@@ -81,7 +76,7 @@ export default async function EventsPage() {
           />
           <button
             type="submit"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:brightness-95 md:col-span-2"
+            className="inline-flex items-center justify-center gap-2 border-2 border-black bg-pop-yellow px-4 py-2 font-display text-sm text-black shadow-[2px_2px_0px_0px_black] transition active:translate-y-0.5 active:shadow-none md:col-span-2"
           >
             <PlusCircle className="h-4 w-4" />
             Add Event
@@ -89,22 +84,22 @@ export default async function EventsPage() {
           </form>
         </section>
 
-        <section className={`${comicSectionCardClass} p-5`}>
+        <section className="border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_black]">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Event Library</p>
-              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">Current Crossover Map</h2>
+              <p className="text-xs font-display uppercase tracking-widest text-slate-600">Event Library</p>
+              <h2 className="mt-2 font-display text-2xl text-ink-black">Current Crossover Map</h2>
             </div>
-            <p className="text-sm text-slate-500">{events.length} events</p>
+            <p className="bg-black px-2 py-1 font-display text-xs text-white">{events.length} EVENTS</p>
           </div>
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {events.map((event) => (
               <Link
                 key={event.id}
                 href={`/events/${event.id}`}
-                className={`p-4 ${comicCollectionCardClass}`}
+                className="border-2 border-black bg-white p-4 shadow-[3px_3px_0px_0px_black] transition hover:-translate-y-0.5 hover:bg-pop-yellow/20"
               >
-                <p className="text-base font-bold text-slate-950">{event.name}</p>
+                <p className="font-display text-xl text-ink-black">{event.name}</p>
                 <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">
                   {event.description || "No description"}
                 </p>

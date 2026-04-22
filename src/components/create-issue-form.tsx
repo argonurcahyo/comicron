@@ -1,10 +1,11 @@
 "use client";
 
-import { BookPlus } from "lucide-react";
+import { BookPlus, CalendarRange, Hash, Layers3, ScrollText } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { createIssueActionWithState, type CreateIssueFormState } from "@/app/actions";
+import { EventCombobox } from "@/components/event-combobox";
 import { PublisherCombobox } from "@/components/publisher-combobox";
 import { TitleCombobox } from "@/components/title-combobox";
 
@@ -32,7 +33,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      className="comic-button-primary"
     >
       <BookPlus className="h-4 w-4" />
       {pending ? "Saving..." : "Add Issue"}
@@ -68,12 +69,12 @@ export function CreateIssueForm({ titles, events, publishers }: CreateIssueFormP
   return (
     <form ref={formRef} action={formAction} className="grid gap-3">
       {fileError && (
-        <div className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="border-2 border-red-700 bg-red-50 px-3 py-2 text-sm text-red-700 shadow-[3px_3px_0px_0px_rgba(185,28,28,0.25)]">
           {fileError}
         </div>
       )}
       {state.error && (
-        <div className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="border-2 border-red-700 bg-red-50 px-3 py-2 text-sm text-red-700 shadow-[3px_3px_0px_0px_rgba(185,28,28,0.25)]">
           Could not save issue: {state.error}
         </div>
       )}
@@ -81,48 +82,51 @@ export function CreateIssueForm({ titles, events, publishers }: CreateIssueFormP
       <TitleCombobox titles={titles} />
       <PublisherCombobox publishers={publishers} />
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <input
-          name="volume"
-          placeholder="Volume (optional, e.g. Vol. 2)"
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-        />
-        <input
-          name="issue_number"
-          required
-          placeholder="Issue number (e.g. 15)"
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-        />
+      <div className="grid gap-3 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
+        <label className="space-y-1.5 text-sm font-medium text-slate-700">
+          <span className="inline-flex items-center gap-2 text-xs font-display text-slate-600">
+            <Layers3 className="h-3.5 w-3.5" />
+            Volume
+          </span>
+          <input
+            name="volume"
+            placeholder="Vol. 2"
+            className="comic-input py-2 pl-3 pr-3"
+          />
+        </label>
+
+        <label className="space-y-1.5 text-sm font-medium text-slate-700">
+          <span className="inline-flex items-center gap-2 text-xs font-display text-slate-600">
+            <Hash className="h-3.5 w-3.5" />
+            Issue
+          </span>
+          <input
+            name="issue_number"
+            required
+            placeholder="15"
+            className="comic-input py-2 pl-3 pr-3"
+          />
+        </label>
+
+        <label className="space-y-1.5 text-sm font-medium text-slate-700">
+          <span className="inline-flex items-center gap-2 text-xs font-display text-slate-600">
+            <CalendarRange className="h-3.5 w-3.5" />
+            Crossover Event
+          </span>
+          <EventCombobox events={events} />
+        </label>
       </div>
 
       <select
         name="reading_status"
         defaultValue="planned"
-        className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+        className="comic-select"
       >
         <option value="planned">Planned</option>
         <option value="reading">Reading</option>
         <option value="completed">Completed</option>
         <option value="dropped">Dropped</option>
       </select>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <select name="event_id" className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
-          <option value="">No crossover event</option>
-          {events.map((event) => (
-            <option key={event.id} value={event.id}>
-              {event.name}
-            </option>
-          ))}
-        </select>
-        <input
-          name="reading_order"
-          type="number"
-          min={1}
-          placeholder="Reading order (optional)"
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-        />
-      </div>
 
       <input
         name="cover_file"
@@ -156,15 +160,15 @@ export function CreateIssueForm({ titles, events, publishers }: CreateIssueFormP
           setCoverPreviewUrl(nextPreviewUrl);
           setFileError(null);
         }}
-        className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+        className="comic-input bg-white file:mr-3 file:border-2 file:border-black file:bg-pop-yellow file:px-3 file:py-1.5 file:font-display file:text-xs file:text-ink-black file:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
       />
       {coverPreviewUrl && (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-2">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Preview Cover</p>
+        <div className="overflow-hidden border-2 border-black bg-slate-50 p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+          <p className="mb-2 text-xs font-display tracking-wide text-slate-600">Preview Cover</p>
           <img
             src={coverPreviewUrl}
             alt="Preview cover issue"
-            className="mx-auto aspect-2/3 w-40 rounded-lg object-cover"
+            className="mx-auto aspect-2/3 w-40 border-2 border-black object-cover"
           />
         </div>
       )}
@@ -172,7 +176,7 @@ export function CreateIssueForm({ titles, events, publishers }: CreateIssueFormP
         name="summary"
         rows={3}
         placeholder="Optional short summary. Use full edit later for detailed notes and character mentions."
-        className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
+        className="comic-textarea"
       />
 
       <SubmitButton />

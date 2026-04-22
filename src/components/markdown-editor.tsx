@@ -4,7 +4,6 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useState } from "react";
 
-import { comicInsetCardClass } from "@/components/ui/comic-card-styles";
 
 type MarkdownEditorProps = {
   name: string;
@@ -25,12 +24,12 @@ export function MarkdownEditor({ name, initialValue }: MarkdownEditorProps) {
           value={value}
           onChange={(event) => setValue(event.target.value)}
           rows={16}
-          className="w-full rounded-2xl border border-card-line bg-[#fffdf7] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary"
+          className="w-full border-2 border-black bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-primary"
           placeholder="## Origin\nWrite the character lore here..."
         />
       </label>
 
-      <section className={`${comicInsetCardClass} p-4`}>
+      <section className="border-2 border-black bg-slate-50 p-4 shadow-[3px_3px_0px_0px_black]">
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
           Preview
         </p>

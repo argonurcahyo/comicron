@@ -1,154 +1,111 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  --shell: #f8f1df;
-  --ink: #18243a;
-  --card: oklch(1 0 0);
-  --card-line: #d9c8a5;
-  --accent: #ffd166;
-  --background: oklch(1 0 0);
-  --foreground: #18243a;
-  --card-foreground: #18243a;
-  --popover: oklch(1 0 0);
-  --popover-foreground: #18243a;
-  --primary: #c44536;
-  --primary-foreground: #fff9f1;
-  --secondary: #eff3f8;
-  --secondary-foreground: #18243a;
-  --muted: #eff3f8;
-  --muted-foreground: #5b687d;
-  --accent-foreground: #18243a;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #dfd2b7;
-  --input: #dfd2b7;
-  --ring: #c44536;
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
 @theme inline {
-  --color-shell: var(--shell);
-  --color-ink: var(--ink);
-  --color-card: var(--card);
-  --color-card-line: var(--card-line);
-  --color-accent: var(--accent);
+  /* Silver Age CMYK Palette */
+  --color-pop-yellow: #fee440;
+  --color-pop-cyan: #00bbf9;
+  --color-pop-red: #f15bb5; /* A vibrant magenta-red */
+  --color-ink-black: #001219;
+  --color-paper-white: #ffffff;
+
+  /* Shadcn Mapping */
+  --color-background: var(--color-paper-white);
+  --color-foreground: var(--color-ink-black);
+
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: var(--color-ink-black);
+
+  --color-primary: #e63946; /* Classic Action Red */
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: var(--color-pop-cyan);
+  --color-secondary-foreground: #ffffff;
+
+  --color-accent: var(--color-pop-yellow);
+  --color-accent-foreground: var(--color-ink-black);
+
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+
+  --color-border: var(--color-ink-black); /* Thick black borders for comic feel */
+  --color-input: #e2e8f0;
+  --color-ring: var(--color-pop-cyan);
+
+  /* Font Mapping */
   --font-sans: var(--font-sans);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
+  --font-display: var(--font-display); /* Bungee */
 
-body {
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at 12% 12%, rgba(255, 209, 102, 0.28) 0, transparent 28%),
-    radial-gradient(circle at 88% 18%, rgba(41, 98, 255, 0.14) 0, transparent 24%),
-    radial-gradient(circle at 78% 82%, rgba(196, 69, 54, 0.12) 0, transparent 22%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.2)),
-    var(--shell);
-  color: var(--ink);
-  font-family: var(--font-sans), sans-serif;
-}
-
-h1,
-h2,
-h3,
-.font-display {
-  font-family: var(--font-sans), sans-serif;
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --radius-lg: 0px; /* Sharp corners feel more like comic panels */
+  --radius-md: 0px;
+  --radius-sm: 0px;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+    /* Halftone dot pattern background */
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+    background-size: 20px 20px;
   }
-  html {
-    @apply font-sans;
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display uppercase tracking-normal;
+    text-shadow: 2px 2px 0px var(--color-pop-yellow);
+  }
+
+  .font-display {
+    @apply font-display uppercase tracking-normal;
+  }
+}
+
+/* Custom Shadcn Overrides for this theme */
+@layer components {
+  .card {
+    @apply border-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]; /* Hard "Pop Art" shadow */
+  }
+  
+  .button-primary {
+    @apply shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-y-0.5 active:shadow-none;
+  }
+
+  .comic-input {
+    @apply w-full border-2 border-black bg-white px-3 py-2.5 text-sm text-ink-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] outline-none transition focus:border-primary focus:bg-pop-yellow/15;
+  }
+
+  .comic-select {
+    @apply w-full appearance-none border-2 border-black bg-white px-3 py-2.5 text-sm text-ink-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] outline-none transition focus:border-primary focus:bg-pop-yellow/15;
+  }
+
+  .comic-textarea {
+    @apply min-h-28 w-full resize-y border-2 border-black bg-white px-4 py-3 text-sm leading-6 text-ink-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] outline-none transition focus:border-primary focus:bg-pop-yellow/15;
+  }
+
+  .comic-button {
+    @apply inline-flex items-center justify-center gap-2 border-2 border-black px-4 py-2 font-display text-sm text-ink-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .comic-button-primary {
+    @apply inline-flex items-center justify-center gap-2 border-2 border-black bg-pop-yellow px-4 py-2 font-display text-sm text-ink-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .comic-button-secondary {
+    @apply inline-flex items-center justify-center gap-2 border-2 border-black bg-white px-4 py-2 font-display text-sm text-ink-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .comic-button-danger {
+    @apply inline-flex items-center justify-center gap-2 border-2 border-black bg-primary px-4 py-2 font-display text-sm text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .comic-chip {
+    @apply inline-flex items-center gap-1 border-2 border-black bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-ink-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)];
   }
 }

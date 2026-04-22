@@ -1,9 +1,5 @@
 import { notFound } from "next/navigation";
 
-import {
-  comicCollectionCardClass,
-  comicPanelClass,
-} from "@/components/ui/comic-card-styles";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
 type EventDetail = {
@@ -90,21 +86,21 @@ export default async function EventTimelinePage({
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <section className={`${comicPanelClass} p-6`}>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Event Timeline</p>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-950">{event.name}</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+      <section className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_black]">
+        <p className="inline-block bg-pop-cyan px-2 py-1 text-xs font-display tracking-widest text-white">Event Timeline</p>
+        <h1 className="mt-3 font-display text-4xl text-ink-black">{event.name}</h1>
+        <p className="mt-2 max-w-3xl text-base leading-6 text-slate-700">
           {event.description || "No description yet."}
         </p>
       </section>
 
-      <section className={`${comicPanelClass} p-5`}>
+      <section className="border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_black]">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Reading Timeline</p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">Ordered Issue Sequence</h2>
+            <p className="text-xs font-display uppercase tracking-widest text-slate-600">Reading Timeline</p>
+            <h2 className="mt-2 font-display text-2xl text-ink-black">Ordered Issue Sequence</h2>
           </div>
-          <p className="text-sm text-slate-500">{timeline.length} entries</p>
+          <p className="bg-black px-2 py-1 font-display text-xs text-white">{timeline.length} ENTRIES</p>
         </div>
         <div className="mt-4 space-y-3">
           {timeline.map((entry) => {
@@ -115,16 +111,16 @@ export default async function EventTimelinePage({
             return (
               <article
                 key={`${entry.issue.id}-${entry.reading_order}`}
-                className={`grid grid-cols-[auto_1fr] gap-3 p-4 ${comicCollectionCardClass}`}
+                className="grid grid-cols-[auto_1fr] gap-3 border-2 border-black bg-white p-4 shadow-[3px_3px_0px_0px_black]"
               >
                 <p className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#ffe3ae] text-sm font-black text-slate-950">
                   {entry.reading_order}
                 </p>
                 <div>
-                  <p className="text-base font-bold text-slate-950">
+                  <p className="font-display text-xl text-ink-black">
                     {entry.issue.title.name} #{entry.issue.issue_number}
                   </p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                  <p className="mt-1 text-xs font-mono uppercase tracking-[0.18em] text-slate-500">
                     Status: {entry.issue.reading_status}
                   </p>
                 </div>

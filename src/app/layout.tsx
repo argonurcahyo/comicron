@@ -1,27 +1,28 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-
+import { Space_Grotesk, Bungee } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
-import "./globals.css";
 import { cn } from "@/lib/utils";
+import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sans",
+});
 
-export const metadata: Metadata = {
-  title: "Comicron - Comic Book Tracker",
-  description: "Comic issue tracker for collections, events, and character notes.",
-};
+const bungee = Bungee({ 
+  weight: "400",
+  subsets: ["latin"], 
+  variable: "--font-display" // New variable for headings
+});
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={cn("h-full", "antialiased", "font-sans", inter.variable)}>
-      <body className="min-h-full bg-shell text-ink">
-        <SiteHeader />
-        {children}
+    <html lang="en" suppressHydrationWarning className={cn(spaceGrotesk.variable, bungee.variable)}>
+      <body className="min-h-screen bg-background font-sans antialiased">
+        <div className="relative flex min-h-screen flex-col">
+          <SiteHeader />
+          <main className="flex-1">{children}</main>
+        </div>
       </body>
     </html>
   );

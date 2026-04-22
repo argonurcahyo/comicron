@@ -1,17 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
-import { BookOpen } from "lucide-react";
 
-import { EditIssueModal } from "@/components/edit-issue-modal";
-import { IssueSummaryPreview } from "@/components/issue-summary-preview";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  comicCollectionCardClass,
-  comicInsetCardClass,
-  comicPanelClass,
-  comicSectionCardClass,
-} from "@/components/ui/comic-card-styles";
+import { IssueCard } from "@/components/issue-card";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
 type SearchParams = {
@@ -108,6 +97,7 @@ export default async function TitlesPage({
       publishersError?.message ??
       charactersError?.message ??
       "Could not load titles.";
+
     return (
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
         <section className="rounded-2xl border border-red-300 bg-red-50 p-5 text-red-900">
@@ -123,14 +113,17 @@ export default async function TitlesPage({
     name: String(row.name ?? "Untitled"),
     publisher: row.publisher ? String(row.publisher) : null,
   })) as TitleItem[];
+
   const events = ((eventsData ?? []) as Record<string, unknown>[]).map((row) => ({
     id: String(row.id ?? ""),
     name: String(row.name ?? ""),
   })) as EventItem[];
+
   const publishers = ((publishersData ?? []) as Record<string, unknown>[]).map((row) => ({
     id: String(row.id ?? ""),
     name: String(row.name ?? ""),
   })) as PublisherItem[];
+
   const characters = ((charactersData ?? []) as Record<string, unknown>[]).map((row) => ({
     id: String(row.id ?? ""),
     name: String(row.name ?? ""),
@@ -138,7 +131,6 @@ export default async function TitlesPage({
   })) as CharacterItem[];
 
   const issueMetaRows = (issueMetaData ?? []) as IssueMeta[];
-
   const countsByTitle = new Map<string, number>();
   const volumesByTitle = new Map<string, string[]>();
 
@@ -153,7 +145,8 @@ export default async function TitlesPage({
     }
   }
 
-  const selectedTitleId = params.title && titles.some((title) => title.id === params.title) ? params.title : titles[0]?.id;
+  const selectedTitleId =
+    params.title && titles.some((title) => title.id === params.title) ? params.title : titles[0]?.id;
   const selectedTitle = titles.find((title) => title.id === selectedTitleId) ?? null;
   const volumes = selectedTitleId ? (volumesByTitle.get(selectedTitleId) ?? []) : [];
   const selectedVolume = params.volume && volumes.includes(params.volume) ? params.volume : volumes[0];
@@ -209,17 +202,17 @@ export default async function TitlesPage({
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <section className={`${comicPanelClass} p-6`}>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Title Explorer</p>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-950">Browse a Run by Title and Volume</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+      <section className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_black]">
+        <p className="inline-block bg-pop-cyan px-2 py-1 text-xs font-display tracking-widest text-white">Title Explorer</p>
+        <h1 className="mt-3 font-display text-4xl text-ink-black">Browse a Run by Title and Volume</h1>
+        <p className="mt-2 max-w-3xl text-base leading-6 text-slate-700">
           Use the selectors below to narrow the library, then handle issue edits and notes from the wider card view.
         </p>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1.2fr_0.9fr]">
-        <div className={`${comicSectionCardClass} p-4`}>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">All Titles</p>
+        <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_black]">
+          <p className="text-xs font-display uppercase tracking-widest text-slate-600">All Titles</p>
           <ul className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             {titles.map((title) => {
               const active = title.id === selectedTitleId;
@@ -227,15 +220,13 @@ export default async function TitlesPage({
                 <li key={title.id}>
                   <Link
                     href={{ pathname: "/titles", query: { title: title.id } }}
-                    className={`block rounded-2xl border px-3 py-3 ${
-                      active
-                        ? "border-primary bg-[#fff4e6] text-slate-950"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                    className={`block border-2 border-black px-3 py-3 transition ${
+                      active ? "bg-pop-yellow text-ink-black" : "bg-white text-slate-700 hover:bg-pop-yellow/20"
                     }`}
                   >
-                    <p className="text-sm font-semibold">{title.name}</p>
-                    <p className="text-xs text-slate-500">{title.publisher ?? "Publisher not set"}</p>
-                    <p className="mt-1 text-[11px] uppercase tracking-wide text-slate-400">
+                    <p className="font-display text-base text-ink-black">{title.name}</p>
+                    <p className="text-xs text-slate-600">{title.publisher ?? "Publisher not set"}</p>
+                    <p className="mt-1 text-[11px] font-mono uppercase tracking-wide text-slate-500">
                       {countsByTitle.get(title.id) ?? 0} issues
                     </p>
                   </Link>
@@ -245,8 +236,8 @@ export default async function TitlesPage({
           </ul>
         </div>
 
-        <div className={`${comicSectionCardClass} p-4`}>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Volumes</p>
+        <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_black]">
+          <p className="text-xs font-display uppercase tracking-widest text-slate-600">Volumes</p>
           {!selectedTitle ? (
             <p className="mt-3 text-sm text-slate-500">No title selected yet.</p>
           ) : (
@@ -260,10 +251,8 @@ export default async function TitlesPage({
                   <li key={volume}>
                     <Link
                       href={{ pathname: "/titles", query: { title: selectedTitle.id, volume } }}
-                      className={`block rounded-xl border px-3 py-2.5 text-sm ${
-                        active
-                          ? "border-primary bg-[#fff4e6] text-slate-950"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                      className={`block border-2 border-black px-3 py-2.5 text-sm ${
+                        active ? "bg-pop-yellow text-ink-black" : "bg-white text-slate-700 hover:bg-pop-yellow/20"
                       }`}
                     >
                       {label}
@@ -276,12 +265,12 @@ export default async function TitlesPage({
         </div>
       </section>
 
-      <section className={`${comicPanelClass} p-5`}>
+      <section className="border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_black]">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Issues</p>
+          <p className="text-xs font-display uppercase tracking-widest text-slate-600">Issues</p>
           {selectedTitle && (
-            <p className="text-sm font-semibold text-slate-700">
-              {selectedTitle.name} · {selectedVolume === NO_VOLUME ? "No Volume" : selectedVolume}
+            <p className="bg-black px-2 py-1 font-display text-xs text-white">
+              {selectedTitle.name} - {selectedVolume === NO_VOLUME ? "No Volume" : selectedVolume}
             </p>
           )}
         </div>
@@ -292,89 +281,35 @@ export default async function TitlesPage({
           <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {issues.map((issue, index) => {
               const eventLink = issue.event_links?.[0];
-              const statusColor =
-                issue.reading_status === "completed"
-                  ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-                  : issue.reading_status === "reading"
-                    ? "bg-amber-100 text-amber-700 border-amber-200"
-                    : issue.reading_status === "dropped"
-                      ? "bg-rose-100 text-rose-700 border-rose-200"
-                      : "bg-slate-100 text-slate-700 border-slate-200";
 
               return (
-                <Card key={issue.id} className={`flex h-full flex-col overflow-hidden ${comicCollectionCardClass}`}>
-                  <div className="relative aspect-2/3 w-full bg-slate-100">
-                    {issue.cover_url ? (
-                      <Image
-                        src={issue.cover_url}
-                        alt={`${selectedTitle.name} #${issue.issue_number}`}
-                        className="object-cover transition-transform hover:scale-105"
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                        priority={index < 3}
-                      />
-                    ) : (
-                      <div className="flex h-full w-full flex-col items-center justify-center text-slate-400">
-                        <BookOpen className="mb-2 h-10 w-10 opacity-20" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">No Cover</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <CardContent className="flex flex-1 flex-col p-4">
-                    <div className="mb-3 flex items-start justify-between gap-2">
-                      <div className="space-y-1">
-                        <h3 className="line-clamp-1 font-bold leading-none text-slate-900">{selectedTitle.name}</h3>
-                        <p className="text-xs font-medium italic text-slate-500">
-                          {issue.volume ? `Vol. ${issue.volume} ` : ""}#{issue.issue_number}
-                        </p>
-                      </div>
-                      <EditIssueModal
-                        issue={{
-                          id: issue.id,
-                          issue_number: issue.issue_number,
-                          volume: issue.volume,
-                          summary: issue.summary,
-                          reading_status: issue.reading_status,
-                          cover_url: issue.cover_url,
-                          publisherId:
-                            publishers.find((publisher) => publisher.name === (selectedTitle.publisher ?? ""))?.id ??
-                            "",
-                          publisherName: selectedTitle.publisher ?? "",
-                          titleId: selectedTitle.id,
-                          titleName: selectedTitle.name,
-                          eventId: eventLink?.event?.id,
-                          readingOrder: eventLink?.reading_order,
-                        }}
-                        titles={titles.map((title) => ({ id: title.id, name: title.name }))}
-                        events={events}
-                        publishers={publishers}
-                        characters={characters}
-                      />
-                    </div>
-
-                    <div className="mb-4 flex flex-wrap gap-2">
-                      <Badge variant="secondary" className={`text-[10px] uppercase font-bold tracking-tight ${statusColor}`}>
-                        {issue.reading_status}
-                      </Badge>
-                      {eventLink?.event && (
-                        <Badge variant="outline" className="text-[10px] border-rose-200 text-rose-700">
-                          {eventLink.event.name.split(":")[0]} #{eventLink.reading_order}
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className={`mt-auto p-3 ${comicInsetCardClass}`}>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Issue Notes</p>
-                      <IssueSummaryPreview
-                        summary={issue.summary}
-                        characters={characters}
-                        emptyText="Open full edit to add notes and @character mentions."
-                        className="mt-2 max-h-24 overflow-hidden text-sm leading-6 text-slate-600 [&_p]:m-0"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+                <IssueCard
+                  key={issue.id}
+                  issue={issue}
+                  titleName={selectedTitle.name}
+                  eventLink={eventLink}
+                  modalIssue={{
+                    id: issue.id,
+                    issue_number: issue.issue_number,
+                    volume: issue.volume,
+                    summary: issue.summary,
+                    reading_status: issue.reading_status,
+                    cover_url: issue.cover_url,
+                    publisherId:
+                      publishers.find((publisher) => publisher.name === (selectedTitle.publisher ?? ""))?.id ?? "",
+                    publisherName: selectedTitle.publisher ?? "",
+                    titleId: selectedTitle.id,
+                    titleName: selectedTitle.name,
+                    eventId: eventLink?.event?.id,
+                    readingOrder: eventLink?.reading_order,
+                  }}
+                  titles={titles.map((title) => ({ id: title.id, name: title.name }))}
+                  events={events}
+                  publishers={publishers}
+                  characters={characters}
+                  emptyText="Open full edit to add notes and @character mentions."
+                  priority={index < 3}
+                />
               );
             })}
             {issues.length === 0 && <p className="text-sm text-slate-500">No issues exist for this volume yet.</p>}

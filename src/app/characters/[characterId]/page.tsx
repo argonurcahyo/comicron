@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 
 import { updateCharacterProfileAction } from "@/app/actions";
 import { MarkdownEditor } from "@/components/markdown-editor";
-import { comicPanelClass } from "@/components/ui/comic-card-styles";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
 type CharacterDetail = {
@@ -46,15 +45,15 @@ export default async function CharacterProfilePage({
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <section className={`${comicPanelClass} p-6`}>
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">Character Profile</p>
-        <h1 className="mt-2 text-4xl font-extrabold tracking-tight text-slate-950">{character.name}</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+      <section className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_black]">
+        <p className="inline-block bg-pop-cyan px-2 py-1 text-xs font-display tracking-widest text-white">Character Profile</p>
+        <h1 className="mt-3 font-display text-4xl text-ink-black">{character.name}</h1>
+        <p className="mt-2 max-w-3xl text-base leading-6 text-slate-700">
           Update status, affiliation, and long-form lore for this character profile.
         </p>
       </section>
 
-      <section className={`${comicPanelClass} p-5`}>
+      <section className="border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_black]">
         <form action={updateCharacterProfileAction} className="space-y-5">
           <input type="hidden" name="character_id" value={character.id} />
 
@@ -92,7 +91,7 @@ export default async function CharacterProfilePage({
 
           <button
             type="submit"
-            className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:brightness-95"
+            className="inline-flex items-center justify-center border-2 border-black bg-pop-yellow px-4 py-2 font-display text-sm text-black shadow-[2px_2px_0px_0px_black] transition active:translate-y-0.5 active:shadow-none"
           >
             Update Profile
           </button>
