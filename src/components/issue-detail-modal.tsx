@@ -6,8 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { CharacterProfileModal } from "@/components/character-profile-modal";
 import { EditIssueModal, type CharacterOption, type EventOption, type IssueData, type PublisherOption, type TitleOption } from "@/components/edit-issue-modal";
 import { panelTransition, springTransition } from "@/components/ui/motion";
 import { renderSummaryWithCharacterLinks } from "@/lib/character-mentions";
@@ -53,6 +54,7 @@ export function IssueDetailModal({
   characters,
 }: IssueDetailModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [activeCharacterId, setActiveCharacterId] = useState<string | null>(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -65,6 +67,10 @@ export function IssueDetailModal({
   }, [open]);
 
   const previewMarkdown = renderSummaryWithCharacterLinks(issue.summary ?? "", characters);
+  const activeCharacter = useMemo(
+    () => characters.find((character) => character.id === activeCharacterId) ?? null,
+    [activeCharacterId, characters],
+  );
 
   const statusStyles =
     issue.reading_status === "completed"
@@ -189,6 +195,20 @@ export function IssueDetailModal({
                     ),
                     a: ({ href, children }) => {
                       if (!href) return <span>{children}</span>;
+
+                      if (href.startsWith("/characters/")) {
+                        const characterId = href.split("/").filter(Boolean).at(-1) ?? "";
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => setActiveCharacterId(characterId)}
+                            className="font-semibold text-primary underline decoration-primary/40 underline-offset-2"
+                          >
+                            {children}
+                          </button>
+                        );
+                      }
+
                       return (
                         <Link
                           href={href}
@@ -233,6 +253,12 @@ export function IssueDetailModal({
           </div>
         </div>
       </m.div>
+
+      <CharacterProfileModal
+        open={Boolean(activeCharacter)}
+        character={activeCharacter}
+        onClose={() => setActiveCharacterId(null)}
+      />
     </dialog>
   );
 }

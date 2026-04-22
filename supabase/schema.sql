@@ -45,6 +45,7 @@ create table if not exists public.characters (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
   alias text,
+  avatar_url text,
   status text default 'active',
   affiliation text,
   lore_markdown text default '',

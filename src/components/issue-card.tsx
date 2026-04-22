@@ -102,9 +102,9 @@ export function IssueCard({
         <div className="flex items-center justify-between gap-2 border-t-4 border-black bg-white px-3 py-2.5">
           <div className="min-w-0">
             <p className="truncate font-display text-sm leading-tight text-ink-black">{titleName || "Untitled"}</p>
-            <p className="mt-0.5 text-[11px] text-slate-500">
+            <p className="mt-0.5 text-[11px] text-slate-500">              
+              {issue.volume ? `Vol ${issue.volume} · ` : ""}
               #{issue.issue_number}
-              {issue.volume ? ` · Vol ${issue.volume}` : ""}
             </p>
           </div>
           <span

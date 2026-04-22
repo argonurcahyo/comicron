@@ -29,6 +29,10 @@ type CharacterItem = {
   id: string;
   name: string;
   alias: string | null;
+  status: string | null;
+  affiliation: string | null;
+  lore_markdown: string | null;
+  avatar_url: string | null;
 };
 
 type IssueMeta = {
@@ -118,7 +122,7 @@ export default async function TitlesPage({
     supabaseAdmin.from("issues").select("title_id,volume"),
     supabaseAdmin.from("events").select("id,name").order("start_date", { ascending: true }),
     supabaseAdmin.from("publishers").select("id,name").order("name", { ascending: true }),
-    supabaseAdmin.from("characters").select("id,name,alias").order("name", { ascending: true }),
+    supabaseAdmin.from("characters").select("id,name,alias,status,affiliation,lore_markdown,avatar_url").order("name", { ascending: true }),
   ]);
 
   if (titlesError || issueMetaError || eventsError || publishersError || charactersError) {
@@ -160,6 +164,10 @@ export default async function TitlesPage({
     id: String(row.id ?? ""),
     name: String(row.name ?? ""),
     alias: row.alias ? String(row.alias) : null,
+    status: row.status ? String(row.status) : null,
+    affiliation: row.affiliation ? String(row.affiliation) : null,
+    lore_markdown: row.lore_markdown ? String(row.lore_markdown) : null,
+    avatar_url: row.avatar_url ? String(row.avatar_url) : null,
   })) as CharacterItem[];
 
   const issueMetaRows = (issueMetaData ?? []) as IssueMeta[];

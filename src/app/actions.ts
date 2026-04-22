@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { canonicalizeSummaryMentions } from "@/lib/character-mentions";
 import { coversBucket, getSupabaseAdmin } from "@/lib/supabase/admin";
@@ -296,6 +297,7 @@ export async function createCharacterAction(formData: FormData): Promise<void> {
   const alias = String(formData.get("alias") ?? "").trim();
   const status = String(formData.get("status") ?? "active").trim();
   const affiliation = String(formData.get("affiliation") ?? "").trim();
+  const avatarUrl = String(formData.get("avatar_url") ?? "").trim();
 
   if (!name) {
     return;
@@ -306,7 +308,8 @@ export async function createCharacterAction(formData: FormData): Promise<void> {
       name,
       alias: alias || null,
       status,
-      affiliation,
+      affiliation: affiliation || null,
+      avatar_url: avatarUrl || null,
     },
     { onConflict: "name" },
   );
@@ -321,22 +324,26 @@ export async function createCharacterAction(formData: FormData): Promise<void> {
 export async function updateCharacterProfileAction(formData: FormData): Promise<void> {
   const supabaseAdmin = getSupabaseAdmin();
   const characterId = String(formData.get("character_id") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim();
   const status = String(formData.get("status") ?? "active").trim();
   const alias = String(formData.get("alias") ?? "").trim();
   const affiliation = String(formData.get("affiliation") ?? "").trim();
   const loreMarkdown = String(formData.get("lore_markdown") ?? "").trim();
+  const avatarUrl = String(formData.get("avatar_url") ?? "").trim();
 
-  if (!characterId) {
+  if (!characterId || !name) {
     return;
   }
 
   const { error } = await supabaseAdmin
     .from("characters")
     .update({
+      name,
       status,
       alias: alias || null,
-      affiliation,
+      affiliation: affiliation || null,
       lore_markdown: loreMarkdown,
+      avatar_url: avatarUrl || null,
     })
     .eq("id", characterId);
 
@@ -346,6 +353,27 @@ export async function updateCharacterProfileAction(formData: FormData): Promise<
 
   revalidatePath("/characters");
   revalidatePath(`/characters/${characterId}`);
+  revalidatePath("/");
+}
+
+export async function deleteCharacterAction(formData: FormData): Promise<void> {
+  const supabaseAdmin = getSupabaseAdmin();
+  const characterId = String(formData.get("character_id") ?? "").trim();
+
+  if (!characterId) {
+    return;
+  }
+
+  const { error } = await supabaseAdmin.from("characters").delete().eq("id", characterId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/characters");
+  revalidatePath("/");
+  revalidatePath("/titles");
+  redirect("/characters");
 }
 
 export async function createEventAction(formData: FormData): Promise<void> {

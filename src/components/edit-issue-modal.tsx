@@ -20,7 +20,15 @@ import { cn } from "@/lib/utils";
 export type TitleOption = { id: string; name: string };
 export type EventOption = { id: string; name: string };
 export type PublisherOption = { id: string; name: string };
-export type CharacterOption = { id: string; name: string; alias: string | null };
+export type CharacterOption = {
+  id: string;
+  name: string;
+  alias: string | null;
+  status: string | null;
+  affiliation: string | null;
+  lore_markdown: string | null;
+  avatar_url: string | null;
+};
 
 export interface IssueData {
   id: string;

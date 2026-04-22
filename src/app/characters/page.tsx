@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { createCharacterAction } from "@/app/actions";
+import { CharacterCastIndex } from "@/components/character-cast-index";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
@@ -11,6 +11,8 @@ type CharacterItem = {
   alias: string | null;
   status: string | null;
   affiliation: string | null;
+  lore_markdown: string | null;
+  avatar_url: string | null;
 };
 
 export const metadata: Metadata = {
@@ -32,7 +34,7 @@ export default async function CharactersPage() {
   const supabaseAdmin = getSupabaseAdmin();
   const { data } = await supabaseAdmin
     .from("characters")
-    .select("id,name,alias,status,affiliation")
+    .select("id,name,alias,status,affiliation,lore_markdown,avatar_url")
     .order("name", { ascending: true });
 
   const characters = (data ?? []) as CharacterItem[];
@@ -47,12 +49,12 @@ export default async function CharactersPage() {
         </p>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_1.25fr]">
+      <section className="grid gap-4 lg:grid-cols-[minmax(280px,0.85fr)_minmax(0,1.55fr)] xl:grid-cols-[minmax(300px,0.8fr)_minmax(0,1.7fr)]">
         <section className="border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_black]">
           <p className="text-xs font-display uppercase tracking-widest text-slate-600">Create Character</p>
           <h2 className="mt-2 font-display text-2xl text-ink-black">Add a Profile Stub</h2>
           <p className="mt-2 text-sm leading-6 text-slate-700">
-            Start with the essentials here, then open the profile page for detailed lore and history.
+            Start with the essentials here, then open profile detail for lore and history edits.
           </p>
 
           <form action={createCharacterAction} className="mt-5 grid gap-3 md:grid-cols-2">
@@ -77,6 +79,12 @@ export default async function CharactersPage() {
             placeholder="Affiliation"
             className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
           />
+          <input
+            name="avatar_url"
+            type="url"
+            placeholder="Avatar URL (https://...)"
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm md:col-span-2"
+          />
           <FormSubmitButton
             idleLabel="Save Basic Profile"
             pendingLabel="Saving Profile..."
@@ -85,7 +93,7 @@ export default async function CharactersPage() {
           </form>
         </section>
 
-        <section className="border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_black]">
+        <section className="border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_black] min-w-0">
           <div className="flex items-end justify-between gap-3">
             <div>
               <p className="text-xs font-display uppercase tracking-widest text-slate-600">Character Directory</p>
@@ -93,25 +101,7 @@ export default async function CharactersPage() {
             </div>
             <p className="bg-black px-2 py-1 font-display text-xs text-white">{characters.length} PROFILES</p>
           </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {characters.map((character) => (
-              <Link
-                key={character.id}
-                href={`/characters/${character.id}`}
-                className="border-2 border-black bg-white p-4 shadow-[3px_3px_0px_0px_black] transition hover:-translate-y-0.5 hover:bg-pop-yellow/20"
-              >
-                <p className="font-display text-xl text-ink-black">{character.name}</p>
-                <div className="mt-3 space-y-1.5 text-sm text-slate-600">
-                  <p>Alias: {character.alias || "-"}</p>
-                  <p>Status: {character.status || "-"}</p>
-                  <p>Affiliation: {character.affiliation || "-"}</p>
-                </div>
-              </Link>
-            ))}
-            {characters.length === 0 && (
-              <p className="text-sm text-slate-500">No characters have been added yet.</p>
-            )}
-          </div>
+          <CharacterCastIndex characters={characters} />
         </section>
       </section>
     </main>

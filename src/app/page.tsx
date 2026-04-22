@@ -17,7 +17,15 @@ import { cn } from "@/lib/utils";
 type TitleItem = { id: string; name: string };
 type EventItem = { id: string; name: string };
 type PublisherItem = { id: string; name: string };
-type CharacterItem = { id: string; name: string; alias: string | null };
+type CharacterItem = {
+  id: string;
+  name: string;
+  alias: string | null;
+  status: string | null;
+  affiliation: string | null;
+  lore_markdown: string | null;
+  avatar_url: string | null;
+};
 
 type IssueItem = {
   id: string;
@@ -69,7 +77,7 @@ export default async function DashboardPage() {
       supabaseAdmin.from("titles").select("id,name").order("name", { ascending: true }),
       supabaseAdmin.from("events").select("id,name").order("start_date", { ascending: true }),
       supabaseAdmin.from("publishers").select("id,name").order("name", { ascending: true }),
-      supabaseAdmin.from("characters").select("id,name,alias").order("name", { ascending: true }),
+      supabaseAdmin.from("characters").select("id,name,alias,status,affiliation,lore_markdown,avatar_url").order("name", { ascending: true }),
       supabaseAdmin.from("issues").select("id,issue_number,volume,summary,reading_status,cover_url,created_at,title:titles(id,name,publisher),event_links:event_issues(reading_order,event:events(id,name))").order("created_at", { ascending: false }).limit(24),
     ]);
 

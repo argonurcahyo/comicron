@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { updateCharacterProfileAction } from "@/app/actions";
+import { deleteCharacterAction, updateCharacterProfileAction } from "@/app/actions";
 import { MarkdownEditor } from "@/components/markdown-editor";
 import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
@@ -13,6 +13,7 @@ type CharacterDetail = {
   status: string | null;
   affiliation: string | null;
   lore_markdown: string | null;
+  avatar_url: string | null;
 };
 
 export async function generateMetadata({
@@ -65,7 +66,7 @@ export default async function CharacterProfilePage({
 
   const { data } = await supabaseAdmin
     .from("characters")
-    .select("id,name,alias,status,affiliation,lore_markdown")
+    .select("id,name,alias,status,affiliation,lore_markdown,avatar_url")
     .eq("id", characterId)
     .maybeSingle();
 
@@ -90,6 +91,15 @@ export default async function CharacterProfilePage({
           <input type="hidden" name="character_id" value={character.id} />
 
           <div className="grid gap-3 sm:grid-cols-3">
+            <label className="flex flex-col gap-1 text-sm text-slate-700 sm:col-span-3">
+              Name
+              <input
+                name="name"
+                required
+                defaultValue={character.name}
+                className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+              />
+            </label>
             <label className="flex flex-col gap-1 text-sm text-slate-700">
               Alias
               <input
@@ -114,6 +124,16 @@ export default async function CharacterProfilePage({
                 className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
               />
             </label>
+            <label className="flex flex-col gap-1 text-sm text-slate-700 sm:col-span-3">
+              Avatar URL
+              <input
+                name="avatar_url"
+                type="url"
+                defaultValue={character.avatar_url ?? ""}
+                placeholder="https://..."
+                className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+              />
+            </label>
           </div>
 
           <MarkdownEditor
@@ -121,7 +141,18 @@ export default async function CharacterProfilePage({
             initialValue={character.lore_markdown ?? ""}
           />
 
-          <FormSubmitButton idleLabel="Update Profile" pendingLabel="Updating Profile..." />
+          <div className="flex flex-wrap items-center gap-3">
+            <FormSubmitButton idleLabel="Update Profile" pendingLabel="Updating Profile..." />
+          </div>
+        </form>
+
+        <form action={deleteCharacterAction} className="mt-4 border-t-2 border-black pt-4">
+          <input type="hidden" name="character_id" value={character.id} />
+          <FormSubmitButton
+            idleLabel="Delete Character"
+            pendingLabel="Deleting..."
+            className="bg-pop-red text-white"
+          />
         </form>
       </section>
     </main>
