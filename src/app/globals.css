@@ -44,6 +44,10 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
   * {
     @apply border-border;
   }
@@ -53,6 +57,7 @@
     /* Halftone dot pattern background */
     background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
     background-size: 20px 20px;
+    overflow-x: hidden;
   }
 
   h1,
@@ -65,6 +70,27 @@
   .font-display {
     @apply font-display uppercase tracking-normal;
   }
+}
+
+@keyframes comic-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.comic-loading-sheen {
+  background-image: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.12) 8%,
+    rgba(255, 255, 255, 0.45) 18%,
+    rgba(255, 255, 255, 0.12) 33%
+  );
+  background-size: 220% 100%;
+  animation: comic-shimmer 1.15s linear infinite;
 }
 
 /* Custom Shadcn Overrides for this theme */

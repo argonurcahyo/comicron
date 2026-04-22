@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { UserRoundPlus } from "lucide-react";
 
 import { createCharacterAction } from "@/app/actions";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
 type CharacterItem = {
@@ -77,13 +77,11 @@ export default async function CharactersPage() {
             placeholder="Affiliation"
             className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
           />
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center gap-2 border-2 border-black bg-pop-yellow px-4 py-2 font-display text-sm text-black shadow-[2px_2px_0px_0px_black] transition active:translate-y-0.5 active:shadow-none md:col-span-2"
-          >
-            <UserRoundPlus className="h-4 w-4" />
-            Save Basic Profile
-          </button>
+          <FormSubmitButton
+            idleLabel="Save Basic Profile"
+            pendingLabel="Saving Profile..."
+            className="md:col-span-2"
+          />
           </form>
         </section>
 

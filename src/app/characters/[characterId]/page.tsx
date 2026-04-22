@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { updateCharacterProfileAction } from "@/app/actions";
 import { MarkdownEditor } from "@/components/markdown-editor";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
 type CharacterDetail = {
@@ -120,12 +121,7 @@ export default async function CharacterProfilePage({
             initialValue={character.lore_markdown ?? ""}
           />
 
-          <button
-            type="submit"
-            className="inline-flex items-center justify-center border-2 border-black bg-pop-yellow px-4 py-2 font-display text-sm text-black shadow-[2px_2px_0px_0px_black] transition active:translate-y-0.5 active:shadow-none"
-          >
-            Update Profile
-          </button>
+          <FormSubmitButton idleLabel="Update Profile" pendingLabel="Updating Profile..." />
         </form>
       </section>
     </main>

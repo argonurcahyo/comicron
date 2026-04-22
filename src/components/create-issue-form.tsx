@@ -1,13 +1,15 @@
 "use client";
 
-import { BookPlus, CalendarRange, Hash, Layers3, ScrollText } from "lucide-react";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { AnimatePresence, m } from "framer-motion";
+import { BookPlus, CalendarRange, CheckCircle2, Hash, Layers3 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { createIssueActionWithState, type CreateIssueFormState } from "@/app/actions";
 import { EventCombobox } from "@/components/event-combobox";
 import { PublisherCombobox } from "@/components/publisher-combobox";
 import { TitleCombobox } from "@/components/title-combobox";
+import { MotionStatus, springTransition } from "@/components/ui/motion";
 
 type TitleOption = { id: string; name: string };
 type EventOption = { id: string; name: string };
@@ -30,22 +32,38 @@ function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
-    <button
+    <m.button
       type="submit"
       disabled={pending}
       className="comic-button-primary"
+      whileHover={pending ? undefined : { y: -2 }}
+      whileTap={pending ? undefined : { y: 1, scale: 0.985 }}
+      transition={springTransition}
     >
-      <BookPlus className="h-4 w-4" />
-      {pending ? "Saving..." : "Add Issue"}
-    </button>
+      <m.span
+        animate={pending ? { rotate: [0, 10, -10, 0] } : { rotate: 0 }}
+        transition={pending ? { duration: 0.8, repeat: Number.POSITIVE_INFINITY } : { duration: 0.2 }}
+      >
+        <BookPlus className="h-4 w-4" />
+      </m.span>
+      {pending ? "Saving Issue..." : "Add Issue"}
+      {pending ? (
+        <m.span
+          className="h-2 w-2 rounded-full bg-primary"
+          animate={{ opacity: [0.3, 1, 0.3], scale: [0.9, 1.08, 0.9] }}
+          transition={{ duration: 0.85, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+        />
+      ) : null}
+    </m.button>
   );
 }
 
 export function CreateIssueForm({ titles, events, publishers }: CreateIssueFormProps) {
-  const [state, formAction] = useActionState(createIssueActionWithState, initialState);
+  const [state, setState] = useState<CreateIssueFormState>(initialState);
   const formRef = useRef<HTMLFormElement>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(null);
+  const [coverPreviewLoaded, setCoverPreviewLoaded] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -55,29 +73,43 @@ export function CreateIssueForm({ titles, events, publishers }: CreateIssueFormP
     };
   }, [coverPreviewUrl]);
 
-  useEffect(() => {
-    if (state.success) {
+  async function formAction(formData: FormData) {
+    const nextState = await createIssueActionWithState(state, formData);
+
+    setState(nextState);
+
+    if (nextState.success) {
       formRef.current?.reset();
       if (coverPreviewUrl) {
         URL.revokeObjectURL(coverPreviewUrl);
       }
       setCoverPreviewUrl(null);
+      setCoverPreviewLoaded(false);
       setFileError(null);
     }
-  }, [state.success, coverPreviewUrl]);
+  }
 
   return (
     <form ref={formRef} action={formAction} className="grid gap-3">
-      {fileError && (
-        <div className="border-2 border-red-700 bg-red-50 px-3 py-2 text-sm text-red-700 shadow-[3px_3px_0px_0px_rgba(185,28,28,0.25)]">
-          {fileError}
-        </div>
-      )}
-      {state.error && (
-        <div className="border-2 border-red-700 bg-red-50 px-3 py-2 text-sm text-red-700 shadow-[3px_3px_0px_0px_rgba(185,28,28,0.25)]">
-          Could not save issue: {state.error}
-        </div>
-      )}
+      <MotionStatus
+        visible={Boolean(fileError)}
+        className="border-2 border-red-700 bg-red-50 px-3 py-2 text-sm text-red-700 shadow-[3px_3px_0px_0px_rgba(185,28,28,0.25)]"
+      >
+        {fileError}
+      </MotionStatus>
+      <MotionStatus
+        visible={Boolean(state.error)}
+        className="border-2 border-red-700 bg-red-50 px-3 py-2 text-sm text-red-700 shadow-[3px_3px_0px_0px_rgba(185,28,28,0.25)]"
+      >
+        Could not save issue: {state.error}
+      </MotionStatus>
+      <MotionStatus
+        visible={state.success}
+        className="flex items-center gap-2 border-2 border-emerald-700 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 shadow-[3px_3px_0px_0px_rgba(16,185,129,0.22)]"
+      >
+        <CheckCircle2 className="h-4 w-4" />
+        Issue added to the collection.
+      </MotionStatus>
 
       <TitleCombobox titles={titles} />
       <PublisherCombobox publishers={publishers} />
@@ -150,6 +182,7 @@ export function CreateIssueForm({ titles, events, publishers }: CreateIssueFormP
               URL.revokeObjectURL(coverPreviewUrl);
             }
             setCoverPreviewUrl(null);
+            setCoverPreviewLoaded(false);
             return;
           }
 
@@ -158,20 +191,37 @@ export function CreateIssueForm({ titles, events, publishers }: CreateIssueFormP
             URL.revokeObjectURL(coverPreviewUrl);
           }
           setCoverPreviewUrl(nextPreviewUrl);
+          setCoverPreviewLoaded(false);
           setFileError(null);
         }}
         className="comic-input bg-white file:mr-3 file:border-2 file:border-black file:bg-pop-yellow file:px-3 file:py-1.5 file:font-display file:text-xs file:text-ink-black file:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
       />
-      {coverPreviewUrl && (
-        <div className="overflow-hidden border-2 border-black bg-slate-50 p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-          <p className="mb-2 text-xs font-display tracking-wide text-slate-600">Preview Cover</p>
-          <img
-            src={coverPreviewUrl}
-            alt="Preview cover issue"
-            className="mx-auto aspect-2/3 w-40 border-2 border-black object-cover"
-          />
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {coverPreviewUrl ? (
+          <m.div
+            className="overflow-hidden border-2 border-black bg-slate-50 p-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+            initial={{ opacity: 0, y: 12, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.985 }}
+            transition={{ duration: 0.24 }}
+          >
+            <p className="mb-2 text-xs font-display tracking-wide text-slate-600">Preview Cover</p>
+            <div className="relative mx-auto aspect-2/3 w-40 overflow-hidden border-2 border-black bg-white">
+              {!coverPreviewLoaded ? <div className="comic-loading-sheen absolute inset-0" /> : null}
+              <m.img
+                key={coverPreviewUrl}
+                src={coverPreviewUrl}
+                alt="Preview cover issue"
+                onLoad={() => setCoverPreviewLoaded(true)}
+                className="h-full w-full object-cover"
+                initial={{ opacity: 0, scale: 1.03 }}
+                animate={{ opacity: coverPreviewLoaded ? 1 : 0.8, scale: coverPreviewLoaded ? 1 : 1.03 }}
+                transition={{ duration: 0.28 }}
+              />
+            </div>
+          </m.div>
+        ) : null}
+      </AnimatePresence>
       <textarea
         name="summary"
         rows={3}
