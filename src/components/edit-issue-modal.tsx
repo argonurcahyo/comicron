@@ -352,7 +352,7 @@ export function EditIssueModal({ issue, titles, events, publishers, characters }
                   <button
                     key={character.id}
                     type="button"
-                    onClick={() => insertMention(character.name)}
+                    onClick={() => insertMention(character.alias || character.name)}
                     className="comic-chip bg-slate-50 text-slate-700 hover:bg-pop-yellow/20 hover:text-primary"
                   >
                     @{character.name}

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { IssueCard } from "@/components/issue-card";
@@ -54,6 +55,37 @@ type IssueItem = {
 };
 
 const NO_VOLUME = "__none";
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams?: Promise<SearchParams>;
+}): Promise<Metadata> {
+  const params = (searchParams ? await searchParams : {}) as SearchParams;
+
+  if (!isSupabaseConfigured || !params.title) {
+    return {
+      title: "Titles",
+      description: "Browse comic runs by title and volume.",
+    };
+  }
+
+  const supabaseAdmin = getSupabaseAdmin();
+  const { data } = await supabaseAdmin.from("titles").select("name").eq("id", params.title).maybeSingle();
+  const titleName = data?.name ? String(data.name) : null;
+
+  if (!titleName) {
+    return {
+      title: "Titles",
+      description: "Browse comic runs by title and volume.",
+    };
+  }
+
+  return {
+    title: params.volume ? `${titleName} Vol. ${params.volume}` : titleName,
+    description: `Browse issues for ${titleName}${params.volume ? ` volume ${params.volume}` : ""}.`,
+  };
+}
 
 export default async function TitlesPage({
   searchParams,
@@ -148,7 +180,26 @@ export default async function TitlesPage({
   const selectedTitleId =
     params.title && titles.some((title) => title.id === params.title) ? params.title : titles[0]?.id;
   const selectedTitle = titles.find((title) => title.id === selectedTitleId) ?? null;
-  const volumes = selectedTitleId ? (volumesByTitle.get(selectedTitleId) ?? []) : [];
+  const volumes = selectedTitleId
+    ? [...(volumesByTitle.get(selectedTitleId) ?? [])].sort((left, right) => {
+        if (left === NO_VOLUME) {
+          return 1;
+        }
+
+        if (right === NO_VOLUME) {
+          return -1;
+        }
+
+        const leftNumber = Number(left);
+        const rightNumber = Number(right);
+
+        if (Number.isFinite(leftNumber) && Number.isFinite(rightNumber)) {
+          return leftNumber - rightNumber;
+        }
+
+        return left.localeCompare(right, undefined, { numeric: true, sensitivity: "base" });
+      })
+    : [];
   const selectedVolume = params.volume && volumes.includes(params.volume) ? params.volume : volumes[0];
 
   let issues: IssueItem[] = [];
@@ -241,17 +292,17 @@ export default async function TitlesPage({
           {!selectedTitle ? (
             <p className="mt-3 text-sm text-slate-500">No title selected yet.</p>
           ) : (
-            <ul className="mt-3 space-y-2">
+            <ul className="mt-3 flex flex-wrap gap-2">
               {volumes.length === 0 && <li className="text-sm text-slate-500">No volumes added yet.</li>}
               {volumes.map((volume) => {
                 const active = volume === selectedVolume;
-                const label = volume === NO_VOLUME ? "No Volume" : volume;
+                const label = volume === NO_VOLUME ? "None" : volume;
 
                 return (
                   <li key={volume}>
                     <Link
                       href={{ pathname: "/titles", query: { title: selectedTitle.id, volume } }}
-                      className={`block border-2 border-black px-3 py-2.5 text-sm ${
+                      className={`block min-w-12 border-2 border-black px-3 py-2 text-center font-display text-sm ${
                         active ? "bg-pop-yellow text-ink-black" : "bg-white text-slate-700 hover:bg-pop-yellow/20"
                       }`}
                     >
@@ -278,7 +329,7 @@ export default async function TitlesPage({
         {!selectedTitle ? (
           <p className="mt-4 text-sm text-slate-500">Choose a title to inspect the issues in that run.</p>
         ) : (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-4 grid gap-4 sm:grid-cols-3 xl:grid-cols-4">
             {issues.map((issue, index) => {
               const eventLink = issue.event_links?.[0];
 

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
@@ -20,6 +21,28 @@ type EventIssue = {
     };
   } | null;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ eventId: string }>;
+}): Promise<Metadata> {
+  if (!isSupabaseConfigured) {
+    return {
+      title: "Event Timeline",
+      description: "View the issue order for a crossover event.",
+    };
+  }
+
+  const supabaseAdmin = getSupabaseAdmin();
+  const { eventId } = await params;
+  const { data } = await supabaseAdmin.from("events").select("name,description").eq("id", eventId).maybeSingle();
+
+  return {
+    title: data?.name ? String(data.name) : "Event Timeline",
+    description: data?.description ? String(data.description) : "View the issue order for a crossover event.",
+  };
+}
 
 export default async function EventTimelinePage({
   params,

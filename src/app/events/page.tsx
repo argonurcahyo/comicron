@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 
@@ -11,6 +12,11 @@ type EventItem = {
   description: string | null;
   start_date: string | null;
   end_date: string | null;
+};
+
+export const metadata: Metadata = {
+  title: "Events",
+  description: "Plan crossover events and manage reading timelines.",
 };
 
 export default async function EventsPage() {

@@ -54,6 +54,10 @@ function buildCharacterReferenceMap(characters: CharacterReference[]): Map<strin
   return characterMap;
 }
 
+function getPreferredMentionName(character: CharacterReference): string {
+  return normalizeMentionName(character.alias?.trim() || character.name);
+}
+
 export function extractCharacterMentions(markdown: string): CharacterMention[] {
   if (!markdown.trim()) {
     return [];
@@ -119,7 +123,7 @@ export function canonicalizeSummaryMentions(
     };
     const match = characterMap.get(mention.normalized);
     if (match) {
-      return formatCharacterMention(match.name);
+      return formatCharacterMention(getPreferredMentionName(match));
     }
 
     rememberUnresolved(mention);
@@ -127,6 +131,10 @@ export function canonicalizeSummaryMentions(
   });
 
   nextMarkdown = nextMarkdown.replace(SIMPLE_MENTION_REGEX, (raw, prefix: string, name: string) => {
+    if (prefix === "[") {
+      return raw;
+    }
+
     const normalized = normalizeMentionName(name);
     const mention: CharacterMention = {
       raw,
@@ -136,7 +144,7 @@ export function canonicalizeSummaryMentions(
     };
     const match = characterMap.get(mention.normalized);
     if (match) {
-      return `${prefix}${formatCharacterMention(match.name)}`;
+      return `${prefix}${formatCharacterMention(getPreferredMentionName(match))}`;
     }
 
     rememberUnresolved(mention);
@@ -165,16 +173,55 @@ export function renderSummaryWithCharacterLinks(
       return raw;
     }
 
-    return `[@${match.name}](/characters/${match.id})`;
+    return `[@${getPreferredMentionName(match)}](/characters/${match.id})`;
   });
 
   nextMarkdown = nextMarkdown.replace(SIMPLE_MENTION_REGEX, (raw, prefix: string, name: string) => {
+    if (prefix === "[") {
+      return raw;
+    }
+
     const match = characterMap.get(normalizeMentionKey(name));
     if (!match) {
       return raw;
     }
 
-    return `${prefix}[@${match.name}](/characters/${match.id})`;
+    return `${prefix}[@${getPreferredMentionName(match)}](/characters/${match.id})`;
+  });
+
+  return nextMarkdown;
+}
+
+export function renderSummaryWithPreferredMentions(
+  markdown: string,
+  characters: CharacterReference[],
+): string {
+  if (!markdown.trim()) {
+    return markdown;
+  }
+
+  const characterMap = buildCharacterReferenceMap(characters);
+
+  let nextMarkdown = markdown.replace(BRACKET_MENTION_REGEX, (raw, name: string) => {
+    const match = characterMap.get(normalizeMentionKey(name));
+    if (!match) {
+      return raw;
+    }
+
+    return formatCharacterMention(getPreferredMentionName(match));
+  });
+
+  nextMarkdown = nextMarkdown.replace(SIMPLE_MENTION_REGEX, (raw, prefix: string, name: string) => {
+    if (prefix === "[") {
+      return raw;
+    }
+
+    const match = characterMap.get(normalizeMentionKey(name));
+    if (!match) {
+      return raw;
+    }
+
+    return `${prefix}${formatCharacterMention(getPreferredMentionName(match))}`;
   });
 
   return nextMarkdown;

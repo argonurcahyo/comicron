@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { UserRoundPlus } from "lucide-react";
 
@@ -10,6 +11,11 @@ type CharacterItem = {
   alias: string | null;
   status: string | null;
   affiliation: string | null;
+};
+
+export const metadata: Metadata = {
+  title: "Characters",
+  description: "Manage character profiles, aliases, and continuity notes.",
 };
 
 export default async function CharactersPage() {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AlertCircle, Database, PlusCircle, BookOpen, Newspaper } from "lucide-react";
 import { CreateIssueForm } from "@/components/create-issue-form";
 import { IssueCard } from "@/components/issue-card";
@@ -38,6 +39,11 @@ type IssueRow = Omit<IssueItem, "title" | "event_links"> & {
         event: { id: string; name: string } | { id: string; name: string }[] | null;
       }[]
     | null;
+};
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Track recent issues, reading status, and crossover activity from the Comicron dashboard.",
 };
 
 export default async function DashboardPage() {

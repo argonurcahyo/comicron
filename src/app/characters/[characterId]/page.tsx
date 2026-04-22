@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { updateCharacterProfileAction } from "@/app/actions";
@@ -12,6 +13,36 @@ type CharacterDetail = {
   affiliation: string | null;
   lore_markdown: string | null;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ characterId: string }>;
+}): Promise<Metadata> {
+  if (!isSupabaseConfigured) {
+    return {
+      title: "Character Profile",
+      description: "View and edit a character profile.",
+    };
+  }
+
+  const supabaseAdmin = getSupabaseAdmin();
+  const { characterId } = await params;
+  const { data } = await supabaseAdmin
+    .from("characters")
+    .select("name,alias,affiliation")
+    .eq("id", characterId)
+    .maybeSingle();
+
+  const label = data?.alias ? String(data.alias) : data?.name ? String(data.name) : "Character Profile";
+
+  return {
+    title: label,
+    description: data?.affiliation
+      ? `${label} profile and continuity notes for ${String(data.affiliation)}.`
+      : `Profile and continuity notes for ${label}.`,
+  };
+}
 
 export default async function CharacterProfilePage({
   params,

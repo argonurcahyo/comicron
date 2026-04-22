@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Space_Grotesk, Bungee } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,14 @@ const bungee = Bungee({
   subsets: ["latin"], 
   variable: "--font-display" // New variable for headings
 });
+
+export const metadata: Metadata = {
+  title: {
+    default: "Comicron",
+    template: "%s | Comicron",
+  },
+  description: "Track comic issues, crossover events, and character notes in one place.",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
