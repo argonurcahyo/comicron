@@ -1,0 +1,13 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Yellow background with dashed border -->
+  <g>
+    <!-- Background fill -->
+    <rect x="2" y="2" width="28" height="28" fill="#FFEF3D" />
+    
+    <!-- Dashed border (simulated with dashes) -->
+    <rect x="2" y="2" width="28" height="28" fill="none" stroke="black" stroke-width="2" stroke-dasharray="4,4" stroke-linejoin="round" />
+    
+    <!-- Letter C -->
+    <text x="16" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" text-anchor="middle" fill="black">C</text>
+  </g>
+</svg>

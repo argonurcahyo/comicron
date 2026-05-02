@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     template: "%s | Comicron",
   },
   description: "Track comic issues, crossover events, and character notes in one place.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { IssueCard } from "@/components/issue-card";
+import { TitlesIssuesSection } from "@/components/titles-issues-section";
+import { IssuesList } from "@/components/issues-list";
 import { TitleFilterCombobox } from "@/components/title-filter-combobox";
+import { QuickAddIssueForm } from "@/components/quick-add-issue-form";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/admin";
 
 type SearchParams = {
@@ -270,7 +272,7 @@ export default async function TitlesPage({
         </p>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+      <section className="grid gap-4 lg:grid-cols-[1.5fr_auto]">
         <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_black]">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -294,13 +296,13 @@ export default async function TitlesPage({
           </div>
 
           {selectedTitle ? (
-            <div className="mt-4 grid gap-3 border-2 border-black bg-slate-50 p-4 md:grid-cols-[minmax(0,1fr)_auto]">
-              <div className="min-w-0">
+            <div className="mt-4 grid gap-3 border-2 border-black bg-slate-50 p-4">
+              <div>
                 <p className="text-[10px] font-display uppercase tracking-[0.18em] text-slate-500">Current Selection</p>
                 <p className="mt-1 font-display text-2xl leading-tight text-ink-black">{selectedTitle.name}</p>
                 <p className="mt-1 text-sm text-slate-600">{selectedTitle.publisher ?? "Publisher not set"}</p>
               </div>
-              <div className="flex flex-wrap items-end gap-2 md:justify-end">
+              <div className="flex flex-wrap items-center gap-2">
                 <p className="border-2 border-black bg-white px-3 py-2 font-display text-xs text-ink-black shadow-[2px_2px_0px_0px_black]">
                   {countsByTitle.get(selectedTitle.id) ?? 0} ISSUES
                 </p>
@@ -308,17 +310,18 @@ export default async function TitlesPage({
                   {volumes.length} VOLUMES
                 </p>
               </div>
+              <QuickAddIssueForm titleId={selectedTitle.id} />
             </div>
           ) : null}
         </div>
 
-        <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_black]">
+        <div className="border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_black] h-fit">
           <p className="text-xs font-display uppercase tracking-widest text-slate-600">Volumes</p>
           {!selectedTitle ? (
-            <p className="mt-3 text-sm text-slate-500">No title selected yet.</p>
+            <p className="mt-3 text-sm text-slate-500">No title selected.</p>
           ) : (
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {volumes.length === 0 && <li className="text-sm text-slate-500">No volumes added yet.</li>}
+            <ul className="mt-3 flex flex-wrap gap-1.5">
+              {volumes.length === 0 && <li className="text-sm text-slate-500">No volumes yet.</li>}
               {volumes.map((volume) => {
                 const active = volume === selectedVolume;
                 const label = volume === NO_VOLUME ? "None" : volume;
@@ -327,7 +330,7 @@ export default async function TitlesPage({
                   <li key={volume}>
                     <Link
                       href={{ pathname: "/titles", query: { title: selectedTitle.id, volume } }}
-                      className={`block min-w-12 border-2 border-black px-3 py-2 text-center font-display text-sm ${
+                      className={`block px-2.5 py-1.5 border-2 border-black text-center font-display text-xs font-semibold ${
                         active ? "bg-pop-yellow text-ink-black" : "bg-white text-slate-700 hover:bg-pop-yellow/20"
                       }`}
                     >
@@ -341,57 +344,39 @@ export default async function TitlesPage({
         </div>
       </section>
 
-      <section className="border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_black]">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <p className="text-xs font-display uppercase tracking-widest text-slate-600">Issues</p>
-          {selectedTitle && (
-            <p className="bg-black px-2 py-1 font-display text-xs text-white">
-              {selectedTitle.name} - {selectedVolume === NO_VOLUME ? "No Volume" : selectedVolume}
-            </p>
-          )}
-        </div>
-
-        {!selectedTitle ? (
-          <p className="mt-4 text-sm text-slate-500">Choose a title to inspect the issues in that run.</p>
-        ) : (
-          <div className="mt-4 grid gap-4 sm:grid-cols-3 xl:grid-cols-4">
-            {issues.map((issue, index) => {
-              const eventLink = issue.event_links?.[0];
-
-              return (
-                <IssueCard
-                  key={issue.id}
-                  issue={issue}
-                  titleName={selectedTitle.name}
-                  eventLink={eventLink}
-                  modalIssue={{
-                    id: issue.id,
-                    issue_number: issue.issue_number,
-                    volume: issue.volume,
-                    summary: issue.summary,
-                    reading_status: issue.reading_status,
-                    cover_url: issue.cover_url,
-                    publisherId:
-                      publishers.find((publisher) => publisher.name === (selectedTitle.publisher ?? ""))?.id ?? "",
-                    publisherName: selectedTitle.publisher ?? "",
-                    titleId: selectedTitle.id,
-                    titleName: selectedTitle.name,
-                    eventId: eventLink?.event?.id,
-                    readingOrder: eventLink?.reading_order,
-                  }}
-                  titles={titles.map((title) => ({ id: title.id, name: title.name }))}
-                  events={events}
-                  publishers={publishers}
-                  characters={characters}
-                  emptyText="Open full edit to add notes and @character mentions."
-                  priority={index < 3}
-                />
-              );
-            })}
-            {issues.length === 0 && <p className="text-sm text-slate-500">No issues exist for this volume yet.</p>}
+      <TitlesIssuesSection
+        selectedTitleId={selectedTitleId}
+        selectedVolume={selectedVolume}
+        selectedTitle={selectedTitle}
+        fallback={
+          <div className="mt-4 space-y-3">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <p className="text-xs font-display uppercase tracking-widest text-slate-600">Issues</p>
+                <p className="mt-2 bg-black px-2 py-1 font-display text-xs text-white animate-pulse">
+                  {selectedTitle?.name} - {selectedVolume === "__none" ? "No Volume" : selectedVolume}
+                </p>
+              </div>
+              <div className="h-10 w-20 animate-pulse rounded bg-slate-200" />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="h-80 animate-pulse rounded-lg bg-slate-200" />
+              ))}
+            </div>
           </div>
-        )}
-      </section>
+        }
+      >
+        <IssuesList
+          issues={issues}
+          selectedTitle={selectedTitle!}
+          selectedVolume={selectedVolume}
+          titles={titles.map((title) => ({ id: title.id, name: title.name }))}
+          events={events}
+          publishers={publishers}
+          characters={characters}
+        />
+      </TitlesIssuesSection>
     </main>
   );
 }

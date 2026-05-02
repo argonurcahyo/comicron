@@ -2,8 +2,8 @@
 
 import { AnimatePresence, m } from "framer-motion";
 import { Search } from "lucide-react";
-import { startTransition, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useEffect, startTransition, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { DropdownSurface, dropdownTransition } from "@/components/ui/motion";
 
@@ -19,14 +19,40 @@ type TitleFilterComboboxProps = {
   selectedTitleId?: string;
 };
 
+const LAST_TITLE_KEY = "comicron_last_selected_title";
+
 export function TitleFilterCombobox({ titles, selectedTitleId = "" }: TitleFilterComboboxProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const selectedTitle = titles.find((title) => title.id === selectedTitleId) ?? titles[0] ?? null;
 
   const [query, setQuery] = useState(selectedTitle?.name ?? "");
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
+
+  // Load last selected title from localStorage on mount
+  useEffect(() => {
+    // If no title selected and we have localStorage data, redirect to it
+    if (!selectedTitleId && titles.length > 0) {
+      const lastTitleId = localStorage.getItem(LAST_TITLE_KEY);
+      if (lastTitleId && titles.some(t => t.id === lastTitleId)) {
+        const titleParam = searchParams.get("title");
+        if (!titleParam) {
+          startTransition(() => {
+            router.push(`${pathname}?title=${encodeURIComponent(lastTitleId)}`, { scroll: false });
+          });
+        }
+      }
+    }
+  }, [selectedTitleId, titles, pathname, router, searchParams]);
+
+  // Save to localStorage when title changes
+  useEffect(() => {
+    if (selectedTitleId) {
+      localStorage.setItem(LAST_TITLE_KEY, selectedTitleId);
+    }
+  }, [selectedTitleId]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const filteredTitles = normalizedQuery
